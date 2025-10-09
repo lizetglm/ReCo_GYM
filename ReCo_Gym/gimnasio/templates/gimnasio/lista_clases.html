@@ -11,7 +11,7 @@
         {% for clase in clases %}
             <li>
                 <strong>{{ clase.nombre }}</strong> - {{ clase.fecha_hora }} (por {{ clase.entrenador.nombre }})
-                <form method="post" action="/inscribir/{{ clase.id }}/">  <!-- Formulario simple, después AJAX -->
+                <form method="post" action="/inscribir/{{ clase.id }}/">  
                     {% csrf_token %}
                     <button type="submit">Inscribirse</button>
                 </form>
