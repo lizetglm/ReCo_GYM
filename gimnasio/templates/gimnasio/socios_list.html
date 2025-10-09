@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Socios</title>
+    <style>
+        :root {
+            --sky-50: #f0f9ff;
+            --sky-100: #e0f2fe;
+            --sky-200: #bae6fd;
+            --sky-300: #7dd3fc;
+            --sky-400: #38bdf8;
+            --sky-500: #0ea5e9;
+            --sky-600: #0284c7;
+            --sky-700: #0369a1;
+            --sky-800: #075985;
+            --sky-900: #0c4a6e;
+            --sky-950: #082f49;
+        }
+
+        body {
+            background-color: var(--sky-50);
+            color: #0c4a6e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--sky-800) 0%, var(--sky-900) 100%);
+            width: 280px;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            text-align: center;
+            padding: 20px;
+            color: var(--sky-100);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: var(--sky-200);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background-color: var(--sky-700);
+            color: var(--sky-50);
+            border-left-color: var(--sky-400);
+        }
+
+        .nav-menu a::before {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header-bar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 32px;
+            color: var(--sky-700);
+            margin: 0;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--sky-500);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--sky-600);
+        }
+
+        .btn-secondary {
+            background-color: var(--sky-200);
+            color: var(--sky-700);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--sky-300);
+        }
+
+        .btn-danger {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background-color: #fecaca;
+        }
+
+        .query-info {
+            color: var(--sky-600);
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--sky-200);
+        }
+
+        th {
+            background-color: var(--sky-100);
+            color: var(--sky-700);
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: var(--sky-50);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: var(--sky-500);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            .header-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}" class="active">👥 Socios</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="#">👨‍🏫 Instructores</a></li>
+                <li><a href="#">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Gestión de Socios</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <div class="action-buttons">
+                <a href="{% url 'socio_form' %}" class="btn btn-primary">➕ Agregar Socio</a>
+                {% if query %}
+                    <p class="query-info">Buscando: "{{ query }}"</p>
+                {% endif %}
+            </div>
+
+            <div class="table-container">
+                {% if socios %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Foto</th>
+                                <th>Nombre</th>
+                                <th>DNI</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for socio in socios %}
+                                <tr>
+                                    <td><img src="https://via.placeholder.com/50x50?text=👤" alt="Foto" style="width: 50px; height: 50px; border-radius: 50%;"></td>
+                                    <td>{{ socio.nombre|default:"N/A" }} {{ socio.apellido|default:"" }}</td>
+                                    <td>{{ socio.dni|default:"N/A" }}</td>
+                                    <td>{{ socio.email|default:"N/A" }}</td>
+                                    <td>{{ socio.telefono|default:"N/A" }}</td>
+                                    <td>
+                                        <a href="{% url 'socio_form' socio.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                                        <a href="#" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">Eliminar</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron socios con "{{ query }}".
+                        {% else %}
+                            No hay socios registrados aún. ¡Agrega el primero!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

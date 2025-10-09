@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Lista de Clases</title>
+    <style>
+        :root {
+            --sky-50: #f0f9ff;
+            --sky-100: #e0f2fe;
+            --sky-200: #bae6fd;
+            --sky-300: #7dd3fc;
+            --sky-400: #38bdf8;
+            --sky-500: #0ea5e9;
+            --sky-600: #0284c7;
+            --sky-700: #0369a1;
+            --sky-800: #075985;
+            --sky-900: #0c4a6e;
+            --sky-950: #082f49;
+        }
+
+        body {
+            background-color: var(--sky-50);
+            color: #0c4a6e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--sky-800) 0%, var(--sky-900) 100%);
+            width: 280px;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            text-align: center;
+            padding: 20px;
+            color: var(--sky-100);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: var(--sky-200);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background-color: var(--sky-700);
+            color: var(--sky-50);
+            border-left-color: var(--sky-400);
+        }
+
+        .nav-menu a::before {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header-bar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 32px;
+            color: var(--sky-700);
+            margin: 0;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            color: var(--sky-800);
+            font-size: 24px;
+        }
+
+        .photo-upload {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--sky-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--sky-600);
+            border: 2px dashed var(--sky-400);
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: var(--sky-700);
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid var(--sky-200);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--sky-500);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--sky-500);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--sky-600);
+        }
+
+        .btn-secondary {
+            background-color: var(--sky-200);
+            color: var(--sky-700);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--sky-300);
+        }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-header { flex-direction: column; text-align: center; }
+            .header-bar { flex-direction: column; gap: 15px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}" class="active">👥 Socios</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="#">👨‍🏫 Instructores</a></li>
+                <li><a href="#">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <h1>Clases Disponibles</h1>
+            <ul>
+                {% for clase in clases %}
+                    <li>
+                        <strong>{{ clase.nombre }}</strong> - {{ clase.fecha_hora }} (por {{ clase.entrenador.nombre }})
+                        <form method="post" action="/inscribir/{{ clase.id }}/">  
+                            {% csrf_token %}
+                            <button type="submit">Inscribirse</button>
+                        </form>
+                    </li>
+                {% empty %}
+                    <li>No hay clases disponibles.</li>
+                {% endfor %}
+            </ul>
+        </main>
+    </div>
+</body>
+</html>
