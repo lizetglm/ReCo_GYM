@@ -258,7 +258,6 @@
                     <div class="photo-upload">👤</div>
                     <h2>Información Personal</h2>
                 </div>
-
                 <form method="post" action="{% url 'socio_form' %}">
                     {% csrf_token %}
                     <div class="form-grid">
@@ -300,7 +299,6 @@
                                 <option value="">Seleccionar...</option>
                                 <option value="bsas">Buenos Aires</option>
                             </select>
-                        </div>
                         <div class="form-group">
                             <label for="como_nos_conocio">¿Cómo nos conoció?</label>
                             <input type="text" id="como_nos_conocio" name="como_nos_conocio">

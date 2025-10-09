@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 # Modelo para Entrenador: Uno puede dar muchas clases
 class Entrenador(models.Model):
     nombre = models.CharField(max_length=100)
-    especialidad = models.CharField(max_length=50)  # e.g., 'Cardio', 'Pesas'
+    especialidad = models.CharField(max_length=50)
     telefono = models.CharField(max_length=15)
     fecha_contratacion = models.DateField()
 
@@ -13,13 +13,13 @@ class Entrenador(models.Model):
 
 # Modelo para Clase: Relacionada a un entrenador, y miembros pueden inscribirse
 class Clase(models.Model):
-    nombre = models.CharField(max_length=100)  # e.g., 'Yoga Matutino'
+    nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
     fecha_hora = models.DateTimeField()
     duracion_minutos = models.IntegerField(default=60)
-    entrenador = models.ForeignKey(Entrenador, on_delete=models.CASCADE)  # Si borras entrenador, borra clases
+    entrenador = models.ForeignKey(Entrenador, on_delete=models.CASCADE)
     max_participantes = models.IntegerField(default=20)
-    participantes = models.ManyToManyField(User, blank=True)  # Miembros inscritos (usuarios auth)
+    participantes = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.fecha_hora}"
@@ -27,7 +27,7 @@ class Clase(models.Model):
 class PerfilMiembro(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)  # Relación 1:1 con User
     fecha_registro = models.DateField(auto_now_add=True)
-    peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Para tracking fitness
+    peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     telefono = models.CharField(max_length=15)
 
     def __str__(self):
