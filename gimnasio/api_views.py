@@ -12,9 +12,6 @@ from .serializers import (
 
 
 class BaseGymViewSet(viewsets.ModelViewSet):
-    # Permitir POST/PUT/DELETE desde el browsable API sin autenticación.
-    # Nota: esto abre creación/edición públicamente. Si prefieres mantener
-    # control, usa IsAuthenticatedOrReadOnly y autentica al usuario.
     permission_classes = (AllowAny,)
 
 
