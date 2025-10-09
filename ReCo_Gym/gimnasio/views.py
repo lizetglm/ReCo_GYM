@@ -3,11 +3,16 @@ from django.contrib.auth import authenticate, login, logout # <-- Importaciones 
 from django.contrib import messages
 from .models import Clase
 
+<<<<<<< HEAD
 # VISTAS EXISTENTES
 
 def home(request):
     """Muestra la página de inicio."""
     return render(request, 'gimnasio/home.html')
+=======
+def dashboard(request):
+    return render(request, 'gimnasio/dashboard.html')
+>>>>>>> 1d4a44e (Avance API)
 
 
 def lista_clases(request):
