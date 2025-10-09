@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Dashboard Alternativo</title>
+    <style>
+        :root {
+            --sky-50: #f0f9ff;
+            --sky-100: #e0f2fe;
+            --sky-200: #bae6fd;
+            --sky-300: #7dd3fc;
+            --sky-400: #38bdf8;
+            --sky-500: #0ea5e9;
+            --sky-600: #0284c7;
+            --sky-700: #0369a1;
+            --sky-800: #075985;
+            --sky-900: #0c4a6e;
+            --sky-950: #082f49;
+        }
+
+        body {
+            background-color: var(--sky-50);
+            color: #0c4a6e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--sky-800) 0%, var(--sky-900) 100%);
+            width: 280px;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            text-align: center;
+            padding: 20px;
+            color: var(--sky-100);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-menu li {
+            margin: 5px 0;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: var(--sky-200);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background-color: var(--sky-700);
+            color: var(--sky-50);
+            border-left-color: var(--sky-400);
+        }
+
+        .nav-menu a::before {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header-bar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 32px;
+            color: var(--sky-700);
+            margin: 0;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-header h2 {
+            margin: 0;
+            color: var(--sky-800);
+            font-size: 24px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--sky-200);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input-group input:focus {
+            outline: none;
+            border-color: var(--sky-500);
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            background-color: var(--sky-500);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background-color: var(--sky-600);
+        }
+
+        .member-profile {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sky-300) 0%, var(--sky-500) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            margin: 0 auto;
+        }
+
+        .profile-details h3 {
+            margin: 0 0 10px 0;
+            color: var(--sky-800);
+            font-size: 28px;
+        }
+
+        .profile-details p {
+            margin: 8px 0;
+            color: var(--sky-600);
+            font-size: 16px;
+        }
+
+        .debt-indicator {
+            background-color: #fee2e2;
+            color: #dc2626;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .status-indicator {
+            background-color: #dcfce7;
+            color: #16a34a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            grid-column: 1 / -1;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            color: var(--sky-600);
+            font-size: 16px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--sky-800);
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            .member-profile {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .header-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="active">📊 Dashboard</a></li>
+                <li><a href="socios_list.html">👥 Socios</a></li>
+                <li><a href="#">🏋️ Actividades</a></li>
+                <li><a href="#">👨‍🏫 Instructores</a></li>
+                <li><a href="#">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Panel de Control</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="#" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Socio</h2>
+                    <form action="socios_list.html" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o DNI..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="member-profile">
+                <div class="profile-image">👤</div>
+                <div class="profile-details">
+                    <h3>Molina Elsa</h3>
+                    <p><strong>DNI:</strong> 12345678</p>
+                    <p><strong>Membresía:</strong> Paquete de 8 clases</p>
+                    <p><strong>Vencimiento:</strong> 24/04/2023 (5 clases restantes)</p>
+                    <div class="debt-indicator">Deuda: $500</div>
+                </div>
+                <div class="status-indicator">
+                    ✅ Membresía al día
+                </div>
+            </section>
+
+            
+        </main>
+    </div>
+</body>
+</html>
