@@ -22,3 +22,74 @@ ul li {
     padding: 10px;
     border-left: 4px solid #06b6d4;
 }
+
+/* Estilos adicionales para el formulario de Login */
+
+.login-container {
+    max-width: 400px; /* Ancho máximo para el contenedor del formulario */
+    margin: 50px auto; /* Centrar en la página */
+    padding: 20px;
+    background-color: #ffffff; /* Fondo blanco para el contenedor */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 10px;
+}
+
+.login-container p {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block; /* La etiqueta ocupa su propia línea */
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #0c4a6e; /* Mismo color que el body/texto general */
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+    font-size: 16px;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    margin-top: 15px;
+    /* Los demás estilos para button ya están definidos en el CSS que proporcionaste */
+}
+
+.registro-link {
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+.registro-link a {
+    color: #0284c7; /* Color de botón para el enlace */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.registro-link a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    color: #dc2626; /* Rojo para mensajes de error */
+    margin-bottom: 15px;
+    font-weight: bold;
+}
