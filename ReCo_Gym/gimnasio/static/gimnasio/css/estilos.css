@@ -1,0 +1,24 @@
+body {
+    background-color: #f0f8ff; 
+    color: #0c4a6e;
+    font-family: Arial, sans-serif;
+}
+h1 {
+    color: #0369a1; 
+}
+button {
+    background-color: #0284c7;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #0ea5e9;
+}
+ul li {
+    background-color: #e0f2fe;
+    margin: 10px;
+    padding: 10px;
+    border-left: 4px solid #06b6d4;
+}
