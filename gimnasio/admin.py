@@ -1,30 +1,48 @@
 from django.contrib import admin
-from .models import Entrenador, Clase, PerfilMiembro, Suscripcion, Pago
+from .models import Entrenador, Socio, Suscripcion, Pago, Clase, InscripcionClase
 
-# Registramos cada modelo con opciones personalizadas
 @admin.register(Entrenador)
 class EntrenadorAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'especialidad', 'telefono')
-    search_fields = ('nombre',)
-    list_filter = ('especialidad',)
+    list_display = ('id_entrenador', 'nombre', 'especialidad', 'telefono', 'salario')
+    search_fields = ('nombre', 'id_entrenador')
+    list_filter = ('especialidad', 'fecha_contratacion')
 
-@admin.register(Clase)
-class ClaseAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'fecha_hora', 'entrenador', 'duracion_minutos')
-    list_filter = ('entrenador', 'fecha_hora')
-    filter_horizontal = ('participantes',)
+@admin.register(Socio)
+class SocioAdmin(admin.ModelAdmin):
+    list_display = ('id_socio', 'nombre', 'apellido', 'telefono', 'tipo_socio', 'estado', 'get_activo_display')
+    search_fields = ('nombre', 'apellido', 'id_socio')
+    list_filter = ('tipo_socio', 'estado', 'fecha_registro')
+    readonly_fields = ('fecha_registro',)
 
-@admin.register(PerfilMiembro)
-class PerfilMiembroAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'fecha_registro', 'telefono')
-    raw_id_fields = ('usuario',)
+    def get_activo_display(self, obj):
+        return obj.activo
 
 @admin.register(Suscripcion)
 class SuscripcionAdmin(admin.ModelAdmin):
-    list_display = ('miembro', 'tipo', 'fecha_inicio', 'activa')
+    list_display = ('id_suscripcion', 'socio', 'tipo', 'fecha_inicio', 'fecha_fin', 'activa', 'monto_total')
     list_filter = ('tipo', 'activa')
+    raw_id_fields = ('socio',)
 
 @admin.register(Pago)
 class PagoAdmin(admin.ModelAdmin):
-    list_display = ('suscripcion', 'monto', 'fecha_pago', 'metodo')
-    list_filter = ('metodo',)
+    list_display = ('id_pago', 'socio', 'tipo_pago', 'monto', 'fecha_pago', 'get_metodo_display')  # Changed: Use method for metodo
+    list_filter = ('tipo_pago', 'metodo')
+    raw_id_fields = ('socio', 'suscripcion', 'clase')
+
+    def get_metodo_display(self, obj):
+        """Custom method to safely display 'metodo' (handles null/blank)"""
+        return obj.metodo or 'N/A'
+
+@admin.register(Clase)
+class ClaseAdmin(admin.ModelAdmin):
+    list_display = ('id_clase', 'nombre', 'fecha_hora', 'entrenador', 'precio', 'participantes_actuales')
+    list_filter = ('entrenador', 'fecha_hora')
+    filter_horizontal = ('participantes',)
+    readonly_fields = ('participantes_actuales',)
+    raw_id_fields = ('entrenador',)
+
+@admin.register(InscripcionClase)
+class InscripcionClaseAdmin(admin.ModelAdmin):
+    list_display = ('id_inscripcion', 'socio', 'clase', 'fecha_inscripcion', 'pago_asociado')
+    list_filter = ('fecha_inscripcion',)
+    raw_id_fields = ('socio', 'clase', 'pago_asociado')

@@ -1,0 +1,79 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+.venv/
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Django stuff:
+*.sqlite3
+db.sqlite3
+/media/
+/staticfiles/
+local_settings.py
+settings_local.py
+.env
+*.env
+
+# Ignore compiled translations
+*.mo
+*.pot
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore python virtual environment folders often used on Windows
+venv/
+ENV/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# Secret files
+secrets.json
+
+# Ignore coverage and pytest cache
+htmlcov/
+.pytest_cache/
+
+# Don't ignore migrations by default — you usually want them tracked
+# If you have generated local migration files you don't want to track, add them explicitly
