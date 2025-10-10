@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Gym - Lista de Clases</title>
+    <title>Control Gym - Actividades</title> 
     {% load static %}
     <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
 </head>
@@ -15,7 +15,7 @@
                 <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
                 <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
                 <li><a href="{% url 'lista_clases' %}" class="active">🏋️ Actividades</a></li>
-                <li><a href="#">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
                 <li><a href="#">💰 Caja</a></li>
                 <li><a href="#">📱 WhatsApp</a></li>
                 <li><a href="#">📈 Estadísticas</a></li>
@@ -33,25 +33,86 @@
             </header>
 
             <div class="action-buttons">
-                <a href="{% url 'socio_form' %}" class="btn btn-primary">➕ Agregar Clase</a>
+                <a href="{% url 'clase_form' %}" class="btn btn-primary">➕ Agregar Clase</a>
                 {% if query %}
                     <p class="query-info">Buscando: "{{ query }}"</p>
                 {% endif %}
             </div>
+            
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Clase</h2>
+                    <form action="{% url 'lista_clases' %}" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o ID de la clase..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
 
-            <ul>
-                {% for clase in clases %}
-                    <li>
-                        <strong>{{ clase.nombre }}</strong> - {{ clase.fecha_hora }} (por {{ clase.entrenador.nombre }})
-                        <form method="post" action="/inscribir/{{ clase.id }}/">  
-                            {% csrf_token %}
-                            <button type="submit">Inscribir</button>
-                        </form>
-                    </li>
-                {% empty %}
-                    <li>No hay clases disponibles.</li>
-                {% endfor %}
-            </ul>
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="table-container">
+                {% if clases %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Horario</th>
+                                <th>Duración (min)</th>
+                                <th>Entrenador</th>
+                                <th>Precio</th>
+                                <th>Participantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clase in clases %}
+                                <tr>
+                                    <td>{{ clase.id_clase }}</td>
+                                    <td>{{ clase.nombre }}</td>
+                                    <td>{{ clase.fecha_hora|date:"d M H:i" }}</td>
+                                    <td>{{ clase.duracion_minutos }}</td>
+                                    <td>{{ clase.entrenador.nombre }}</td>
+                                    <td>${{ clase.precio }}</td>
+                                    <td>{{ clase.participantes_actuales }}/{{ clase.max_participantes }}</td>
+                                     <td class="action-cell">
+                                        {% if clase.pk %}
+                                            <a href="{% url 'inscripcion_clase_detalle' clase.pk %}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">
+                                                Inscribir
+                                            </a>
+                                            <a href="{% url 'clase_form' clase.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                                            <form method="post" action="{% url 'eliminar_clase' clase.pk %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;" 
+                                                        onclick="return confirm('¿Estás seguro de que quieres eliminar la clase {{ clase.nombre }}? Esta acción no se puede deshacer.')">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                             <span class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px; opacity: 0.6; cursor: not-allowed;">No disponible</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron clases con "{{ query }}".
+                        {% else %}
+                            No hay clases disponibles. ¡Agrega la primera!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
         </main>
     </div>
 </body>

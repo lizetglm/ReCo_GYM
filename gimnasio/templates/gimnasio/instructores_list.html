@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Instructores</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}" class="active">👨‍🏫 Instructores</a></li> 
+                <li><a href="#">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Gestión de Instructores</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <div class="action-buttons">
+                <a href="{% url 'instructor_form' %}" class="btn btn-primary">➕ Agregar Instructor</a>
+                {% if query %}
+                    <p class="query-info">Buscando: "{{ query }}"</p>
+                {% endif %}
+            </div>
+            
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Instructor</h2>
+                    <form action="{% url 'instructores_list' %}" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o ID..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
+            
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="table-container">
+                {% if entrenadores %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Especialidad</th>
+                                <th>Teléfono</th>
+                                <th>Contratación</th>
+                                <th>Salario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrenador in entrenadores %}
+                                <tr>
+                                    <td>{{ entrenador.id_entrenador|default:"N/A" }}</td>
+                                    <td>{{ entrenador.nombre|default:"N/A" }}</td>
+                                    <td>{{ entrenador.especialidad|default:"N/A" }}</td>
+                                    <td>{{ entrenador.telefono|default:"N/A" }}</td>
+                                    <td>{{ entrenador.fecha_contratacion|date:"d/m/Y" }}</td>
+                                    <td>${{ entrenador.salario|default:"0.00" }}</td>
+                                    <td class="action-cell">
+                                        <a href="{% url 'instructor_form' entrenador.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                                        <form method="post" action="{% url 'eliminar_instructor' entrenador.pk %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;" 
+                                                    onclick="return confirm('¿Estás seguro de que quieres eliminar a {{ entrenador.nombre }}? Esta acción no se puede deshacer.')">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron instructores con "{{ query }}".
+                        {% else %}
+                            No hay instructores registrados aún. ¡Agrega el primero!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>
