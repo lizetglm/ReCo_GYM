@@ -1,37 +1,487 @@
+/* ESTILOS GLOBALES */
+
+:root {
+    --sky-50: #f0f9ff;
+    --sky-100: #e0f2fe;
+    --sky-200: #bae6fd;
+    --sky-300: #7dd3fc;
+    --sky-400: #38bdf8;
+    --sky-500: #0ea5e9;
+    --sky-600: #0284c7;
+    --sky-700: #0369a1;
+    --sky-800: #075985;
+    --sky-900: #0c4a6e;
+    --sky-950: #082f49;
+}
+
+/* Estilos base del body */
 body {
-    background-color: #f0f8ff; 
+    background-color: var(--sky-50);
     color: #0c4a6e;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
 }
+
+/* Estilos generales para h1 */
 h1 {
-    color: #0369a1; 
+    color: #0369a1;
 }
+
+/* Estilos generales para botones */
 button {
     background-color: #0284c7;
     color: white;
     border: none;
     padding: 10px;
     border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
 }
+
 button:hover {
     background-color: #0ea5e9;
 }
+
+/* Estilos para listas ul li */
 ul li {
-    background-color: #e0f2fe;
+    background-color: #064873;
     margin: 10px;
     padding: 10px;
     border-left: 4px solid #06b6d4;
 }
 
-/* Estilos adicionales para el formulario de Login */
+/* LAYOUT PRINCIPAL */
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--sky-800) 0%, var(--sky-900) 100%);
+    width: 280px;
+    padding: 20px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-logo {
+    text-align: center;
+    padding: 20px;
+    color: var(--sky-100);
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-menu li {
+    margin: 5px 0;
+}
+
+.nav-menu a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: var(--sky-200);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+    background-color: var(--sky-700);
+    color: var(--sky-50);
+    border-left-color: var(--sky-400);
+}
+
+.nav-menu a::before {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* HEADER Y ACCIONES DE USUARIO */
+
+.header-bar {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    font-size: 32px;
+    color: var(--sky-700);
+    margin: 0;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* BOTONES GENERALES */
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--sky-500);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--sky-600);
+}
+
+.btn-secondary {
+    background-color: var(--sky-200);
+    color: var(--sky-700);
+}
+
+.btn-secondary:hover {
+    background-color: var(--sky-300);
+}
+
+.btn-danger {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-danger:hover {
+    background-color: #fecaca;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* FORMULARIOS GENERALES */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #0c4a6e;
+    color: var(--sky-700);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border: 2px solid var(--sky-200);
+    border-radius: 5px 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--sky-500);
+}
+
+.form-group textarea {
+    min-height: 80px;
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.form-header h2 {
+    margin: 0;
+    color: var(--sky-800);
+    font-size: 24px;
+}
+
+.photo-upload {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: var(--sky-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: var(--sky-600);
+    border: 2px dashed var(--sky-400);
+    cursor: pointer;
+}
+
+/* DASHBOARD ESPECÍFICO*/
+
+.search-container {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-header h2 {
+    margin: 0;
+    color: var(--sky-800);
+    font-size: 24px;
+}
+
+.search-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--sky-200);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.search-input-group input:focus {
+    outline: none;
+    border-color: var(--sky-500);
+}
+
+.search-btn {
+    padding: 12px 24px;
+    background-color: var(--sky-500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+    background-color: var(--sky-600);
+}
+
+.member-profile {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sky-300) 0%, var(--sky-500) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: white;
+    margin: 0 auto;
+}
+
+.profile-details h3 {
+    margin: 0 0 10px 0;
+    color: var(--sky-800);
+    font-size: 28px;
+}
+
+.profile-details p {
+    margin: 8px 0;
+    color: var(--sky-600);
+    font-size: 16px;
+}
+
+.debt-indicator {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 14px;
+    display: inline-block;
+}
+
+.status-indicator {
+    background-color: #dcfce7;
+    color: #16a34a;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 20px;
+    grid-column: 1 / -1;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.stat-item {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+}
+
+.stat-label {
+    color: var(--sky-600);
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--sky-800);
+    margin: 0;
+}
+
+/* LISTA DE SOCIOS*/
+
+.query-info {
+    color: var(--sky-600);
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--sky-200);
+}
+
+th {
+    background-color: var(--sky-100);
+    color: var(--sky-700);
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: var(--sky-50);
+}
+
+.no-data {
+    text-align: center;
+    padding: 50px;
+    color: var(--sky-500);
+}
+
+/* FORMULARIO DE SOCIO*/
+
+
+
+/* LISTA DE CLASES */
+
+
+
+/* LOGIN ESPECÍFICO */
 
 .login-container {
-    max-width: 400px; /* Ancho máximo para el contenedor del formulario */
-    margin: 50px auto; /* Centrar en la página */
+    max-width: 400px;
+    margin: 50px auto;
     padding: 20px;
-    background-color: #ffffff; /* Fondo blanco para el contenedor */
+    background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
@@ -43,34 +493,11 @@ ul li {
     margin-bottom: 25px;
 }
 
-.form-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block; /* La etiqueta ocupa su propia línea */
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #0c4a6e; /* Mismo color que el body/texto general */
-}
-
-.form-group input[type="text"],
-.form-group input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box; /* Incluye padding y borde en el ancho total */
-    font-size: 16px;
-}
-
 .login-container button {
     width: 100%;
     padding: 12px;
     font-size: 18px;
     margin-top: 15px;
-    /* Los demás estilos para button ya están definidos en el CSS que proporcionaste */
 }
 
 .registro-link {
@@ -79,7 +506,7 @@ ul li {
 }
 
 .registro-link a {
-    color: #0284c7; /* Color de botón para el enlace */
+    color: #0284c7;
     text-decoration: none;
     font-weight: bold;
 }
@@ -89,7 +516,150 @@ ul li {
 }
 
 .error-message {
-    color: #dc2626; /* Rojo para mensajes de error */
+    color: #dc2626;
     margin-bottom: 15px;
     font-weight: bold;
+}
+
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.messages li {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+.messages li.error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-left: 4px solid #dc2626;
+}
+
+/* MEDIA QUERIES (RESPONSIVE)*/
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .header-bar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .member-profile {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+/* Stats rapidas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.stat-card {
+    background: #f0f8ff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    border-left: 4px solid var(--sky-500);
+}
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+.stat-card p {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--sky-500);
+    margin: 0;
+}
+
+/* Grid de tarjetas de socios */
+.socios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+.socio-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid var(--sky-500);
+}
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--sky-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+.socio-info h3 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+.socio-info p {
+    margin: 2px 0;
+    font-size: 14px;
+    color: #666;
+}
+.status-activo { 
+    color: green; 
+    font-weight: bold; 
+}
+.status-inactivo { 
+    color: red; 
+    font-weight: bold; 
+}
+.deuda-btn {
+    background: #ffebee;
+    color: #d32f2f;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.deuda-0 { 
+    background: #e8f5e8; 
+    color: green; 
 }
