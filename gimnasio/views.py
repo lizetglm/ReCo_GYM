@@ -335,6 +335,42 @@ def inscripcion_clase_detalle(request, pk):
     }
     return render(request, 'gimnasio/inscripcion_clase_detalle.html', context)
 
+# En tu archivo views.py, añade esta función:
+def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
+    clase = get_object_or_404(Clase, pk=clase_pk)
+    socio = get_object_or_404(Socio, pk=socio_pk)
+    
+    if request.method == 'POST':
+        # 1. Eliminar la relación ManyToMany (participantes)
+        if clase.participantes.filter(pk=socio.pk).exists():
+            clase.participantes.remove(socio)
+            
+            try:
+                # 2. Buscar y eliminar el registro formal de InscripcionClase
+                # Esto es crucial para la integridad de los datos
+                inscripcion = InscripcionClase.objects.get(socio=socio, clase=clase)
+                
+                # 3. Opcional: Eliminar el pago asociado si se registró solo para esta clase
+                if inscripcion.pago_asociado:
+                    pago_id = inscripcion.pago_asociado.id_pago
+                    inscripcion.pago_asociado.delete() # Elimina el pago
+                    messages.info(request, f'Pago asociado ({pago_id}) eliminado.')
+                
+                inscripcion.delete() # Elimina la inscripción formal
+                
+                messages.success(request, f'Inscripción de {socio.nombre} a {clase.nombre} eliminada correctamente.')
+                
+            except InscripcionClase.DoesNotExist:
+                messages.warning(request, f'Advertencia: No se encontró un registro formal de InscripcionClase. Se eliminó de la lista de participantes.')
+            
+        else:
+            messages.error(request, f'El socio {socio.nombre} no estaba inscrito en {clase.nombre}.')
+            
+        # Redirigir de vuelta a la página de detalle de la clase
+        return redirect('inscripcion_clase_detalle', pk=clase_pk)
+        
+    return redirect('inscripcion_clase_detalle', pk=clase_pk)
+
 # Listado de Instructores
 def instructores_list(request): 
     query = request.GET.get('q')

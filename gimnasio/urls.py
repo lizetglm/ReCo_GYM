@@ -17,6 +17,8 @@ urlpatterns = [
     path('clase-form/<int:pk>/', views.clase_form, name='clase_form'), 
     path('clase-delete/<int:pk>/', views.eliminar_clase, name='eliminar_clase'), 
     path('clase/inscripcion/<int:pk>/', views.inscripcion_clase_detalle, name='inscripcion_clase_detalle'), 
+    path('clases/<int:clase_pk>/eliminar-inscripcion/<int:socio_pk>/', views.eliminar_inscripcion_clase, name='eliminar_inscripcion_clase'),
+
  
 
     # URLs para Instructores (Nombres de URL corregidos)
