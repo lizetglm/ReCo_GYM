@@ -1,0 +1,18 @@
+
+PASOS PARA CORRER LA APLICACION CON MYSQL
+1. Activar el servicio de MySQL
+    Asegurarse de que el servidor MySQL esté corriendo.
+    En Windows: buscar “Servicios” y activar MySQL.
+
+2. Debe tener un usario llamado "root" y contraseña "root"
+    La aplicación está configurada para conectarse con el usuario:
+        Usuario: root
+        Contraseña: root
+    Si no existe o tiene otra contraseña, puedes crearlo o cambiarla con:
+        ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';
+
+3.Crear una base de datos llamada "reco_gym_db"
+
+4. Ejecutar migraciones:
+    python manage.py makemigrations
+    python manage.py migrate
