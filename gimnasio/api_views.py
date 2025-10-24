@@ -38,12 +38,5 @@ class SuscripcionViewSet(BaseGymViewSet):
 #     serializer_class = PagoSerializer
 
 class PagoViewSet(BaseGymViewSet):
-    # CRUCIAL: Cargar todos los modelos relacionados
-    queryset = Pago.objects.select_related(
-        'socio',                  
-        'suscripcion',            
-        'clase',                  
-        'clase__entrenador'       # Necesario para el nombre del entrenador
-    ).order_by('-fecha_pago') 
-
+    queryset = Pago.objects.select_related('socio', 'suscripcion', 'clase', 'clase__entrenador').order_by('-fecha_pago')
     serializer_class = PagoSerializer
