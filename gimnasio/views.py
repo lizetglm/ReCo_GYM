@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils.crypto import get_random_string
 from datetime import date, timedelta
 from .models import Clase, Entrenador, Socio, Suscripcion, Pago, InscripcionClase
+from django.views.generic import TemplateView
 
 def dashboard(request):
     # Estadísticas básicas (ya las tenías)
@@ -450,3 +451,6 @@ def eliminar_instructor(request, pk):
             messages.error(request, f'Error al eliminar el instructor: {e}')
             return redirect('instructores_list')
     return redirect('instructores_list') 
+
+class CajaView(TemplateView):
+    template_name = "gimnasio/caja.html"

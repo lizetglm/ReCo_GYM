@@ -31,6 +31,9 @@ urlpatterns = [
     # Rutas de Autenticación (Existente)
     path('login/', views.login_usuario, name='login_usuario'),
     path('logout/', views.logout_usuario, name='logout_usuario'),
+
+    #Rutas de Caja
+    path('caja/', views.CajaView.as_view(), name='caja'),
     
     # API (Existente)
     path('api/', include('gimnasio.api_urls')), 
