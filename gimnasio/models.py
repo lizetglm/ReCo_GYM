@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 # Tabla Entrenador
 class Entrenador(models.Model):
-    id_entrenador = models.CharField(max_length=10, unique=True, primary_key=False)
+    id_entrenador = models.CharField(max_length=100, unique=True, primary_key=False)
     nombre = models.CharField(max_length=100)
     especialidad = models.CharField(max_length=50)
     telefono = models.CharField(max_length=15)
@@ -46,7 +46,7 @@ class Socio(models.Model):
 
 # Tabla Suscripcion Intenos
 class Suscripcion(models.Model):
-    id_suscripcion = models.CharField(max_length=10, unique=True, primary_key=False)
+    id_suscripcion = models.CharField(max_length=100, unique=True, primary_key=False)
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE, limit_choices_to={'tipo_socio': 'interno'}, related_name='suscripciones')
     tipo = models.CharField(max_length=10, choices=[
         ('mensual', 'Mensual ($500)'),
@@ -81,7 +81,7 @@ class Pago(models.Model):
         ('clase', 'Pago por Clase'),
     ]
     
-    id_pago = models.CharField(max_length=10, unique=True, primary_key=False)
+    id_pago = models.CharField(max_length=100, unique=True, primary_key=False)
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE, related_name='pagos')
     tipo_pago = models.CharField(max_length=10, choices=TIPOS_PAGO)
     suscripcion = models.ForeignKey(Suscripcion, on_delete=models.SET_NULL, null=True, blank=True)
@@ -102,7 +102,7 @@ class Pago(models.Model):
 
 # Modelo para Clase
 class Clase(models.Model):
-    id_clase = models.CharField(max_length=10, unique=True, primary_key=False)
+    id_clase = models.CharField(max_length=100, unique=True, primary_key=False)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     fecha_hora = models.DateTimeField()
@@ -121,7 +121,7 @@ class Clase(models.Model):
 
 # Modelo para InscripcionClase
 class InscripcionClase(models.Model):
-    id_inscripcion = models.CharField(max_length=10, unique=True, primary_key=False)
+    id_inscripcion = models.CharField(max_length=100, unique=True, primary_key=False)
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE)
     clase = models.ForeignKey(Clase, on_delete=models.CASCADE)
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)

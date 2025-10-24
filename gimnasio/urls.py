@@ -19,14 +19,11 @@ urlpatterns = [
     path('clase/inscripcion/<int:pk>/', views.inscripcion_clase_detalle, name='inscripcion_clase_detalle'), 
     path('clases/<int:clase_pk>/eliminar-inscripcion/<int:socio_pk>/', views.eliminar_inscripcion_clase, name='eliminar_inscripcion_clase'),
 
- 
-
     # URLs para Instructores (Nombres de URL corregidos)
     path('instructores/', views.instructores_list, name='instructores_list'),
     path('instructor/agregar/', views.instructor_form, name='instructor_form'),
     path('instructor/editar/<int:pk>/', views.instructor_form, name='instructor_form'),
     path('instructor/eliminar/<int:pk>/', views.eliminar_instructor, name='eliminar_instructor'),
-    
     
     # Rutas de Inscripción (Existente)
     path('inscribir/<int:socio_id>/<int:clase_id>/', views.inscribir_a_clase, name='inscribir_a_clase'),
