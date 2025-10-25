@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date, timedelta
+from decimal import Decimal
 
 # Tabla Entrenador
 class Entrenador(models.Model):
@@ -139,3 +140,72 @@ class InscripcionClase(models.Model):
         if self.socio.tipo_socio == 'interno' and not self.socio.activo:
             raise ValueError("Los socios internos deben tener suscripción activa para acceder al gym.")
         super().save(*args, **kwargs)
+
+# -----------------------------
+# Productos y Ventas de tienda
+# -----------------------------
+class Producto(models.Model):
+    nombre = models.CharField(max_length=120)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.nombre} (${self.precio})"
+
+
+class Caja(models.Model):
+    METODOS = (
+        ("efectivo", "Efectivo"),
+        ("tarjeta", "Tarjeta"),
+        ("transferencia", "Transferencia"),
+    )
+    fecha = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    metodo_pago = models.CharField(max_length=20, choices=METODOS, default="efectivo")
+    cliente = models.CharField(max_length=120, blank=True)
+    observacion = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Caja #{self.pk} - {self.fecha:%d/%m/%Y %H:%M} - ${self.total}"
+
+
+class VentaItem(models.Model):
+    venta = models.ForeignKey(Caja, related_name="items", on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    cantidad = models.PositiveIntegerField(default=1)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.producto} x{self.cantidad}"
+
+
+class CajaMovimiento(models.Model):
+    METODOS = [
+        ("efectivo", "Efectivo"),
+        ("tarjeta", "Tarjeta"),
+        ("transferencia", "Transferencia"),
+    ]
+    TIPOS = [
+        ("producto", "Venta de productos"),
+        ("mensualidad", "Mensualidad"),
+        ("clase", "Clase"),
+        ("otro", "Otro"),
+    ]
+
+    fecha = models.DateTimeField(auto_now_add=True)
+    tipo = models.CharField(max_length=20, choices=TIPOS, default="producto")
+    descripcion = models.CharField(max_length=200, blank=True, default="")
+    metodo_pago = models.CharField(max_length=20, choices=METODOS, default="efectivo")
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Referencias opcionales
+    venta = models.ForeignKey(Caja, null=True, blank=True, on_delete=models.SET_NULL, related_name="mov_caja")
+    socio = models.ForeignKey('Socio', null=True, blank=True, on_delete=models.SET_NULL, related_name='mov_caja')
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Movimiento de caja'
+        verbose_name_plural = 'Movimientos de caja'
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - ${self.monto:.2f} ({self.get_metodo_pago_display()})"

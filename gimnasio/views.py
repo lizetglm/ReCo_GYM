@@ -4,8 +4,14 @@ from django.contrib import messages
 from django.db.models import Q
 from django.utils.crypto import get_random_string
 from datetime import date, timedelta
-from .models import Clase, Entrenador, Socio, Suscripcion, Pago, InscripcionClase
+from .models import Clase, Entrenador, Socio, Suscripcion, Pago, InscripcionClase, Producto, Caja, VentaItem, CajaMovimiento
+from decimal import Decimal, InvalidOperation
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import mm
 from django.views.generic import TemplateView
+from django.db.models import Sum
 
 def dashboard(request):
     # Estadísticas básicas (ya las tenías)
@@ -454,3 +460,140 @@ def eliminar_instructor(request, pk):
 
 class CajaView(TemplateView):
     template_name = "gimnasio/caja.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        movimientos = CajaMovimiento.objects.select_related('venta', 'socio')[:200]
+        total_hoy = CajaMovimiento.objects.filter(fecha__date=date.today()).aggregate(total=Sum('monto'))['total'] or 0
+        ctx.update({
+            'movimientos': movimientos,
+            'total_hoy': total_hoy,
+        })
+        return ctx
+
+
+def pago_productos(request):
+    """Pantalla para registrar ventas de productos en la tienda del gym."""
+    productos = Producto.objects.all().order_by("nombre")
+
+    if request.method == "POST":
+        metodo = request.POST.get("metodo_pago") or "efectivo"
+        cliente = request.POST.get("cliente", "")
+        obs = request.POST.get("observacion", "")
+
+        ids = request.POST.getlist("producto_id[]")
+        cants = request.POST.getlist("cantidad[]")
+        precios = request.POST.getlist("precio_unitario[]")
+
+        items = []
+        total = Decimal("0.00")
+
+        for i, pid in enumerate(ids):
+            if not pid:
+                continue
+            producto = get_object_or_404(Producto, pk=pid)
+            try:
+                cant = int(cants[i] or 0)
+                punit = Decimal(precios[i] or "0")
+            except (ValueError, InvalidOperation):
+                continue
+            if cant <= 0 or punit < 0:
+                continue
+            subtotal = punit * cant
+            total += subtotal
+            items.append((producto, cant, punit, subtotal))
+
+        if not items:
+            messages.error(request, "Agrega al menos un producto válido.")
+            return render(request, "gimnasio/pago_productos.html", {"productos": productos})
+
+        venta = Caja.objects.create(total=total, metodo_pago=metodo, cliente=cliente, observacion=obs)
+        for producto, cant, punit, subtotal in items:
+            VentaItem.objects.create(venta=venta, producto=producto, cantidad=cant, precio_unitario=punit, subtotal=subtotal)
+
+        # Registrar movimiento en Caja
+        CajaMovimiento.objects.create(
+            tipo='producto',
+            descripcion=f'Venta #{venta.id} - {len(items)} item(s)',
+            metodo_pago=metodo,
+            monto=total,
+            venta=venta,
+        )
+
+        # Redirigir directamente al ticket PDF para imprimir/guardar
+        return redirect("ticket_venta_pdf", venta_id=venta.id)
+
+    return render(request, "gimnasio/pago_productos.html", {"productos": productos})
+
+
+def ticket_venta_pdf(request, venta_id: int):
+    """Genera un PDF tipo ticket para una venta de productos."""
+    venta = get_object_or_404(Caja.objects.prefetch_related("items__producto"), pk=venta_id)
+
+    # Configurar tamaño tipo ticket 80mm de ancho y altura dinámica
+    ancho = 80 * mm
+    alto_base = 110 * mm
+    alto_por_item = 6 * mm
+    num_items = venta.items.count()
+    alto = alto_base + num_items * alto_por_item
+    pagesize = (ancho, alto)
+
+    # Respuesta PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f"inline; filename=ticket_venta_{venta.id}.pdf"
+
+    c = canvas.Canvas(response, pagesize=pagesize)
+    y = alto - 8 * mm
+
+    def center(text, y_pos, size=11):
+        c.setFont("Helvetica-Bold", size)
+        c.drawCentredString(ancho / 2, y_pos, text)
+
+    def left(text, y_pos, size=10):
+        c.setFont("Helvetica", size)
+        c.drawString(6 * mm, y_pos, text)
+
+    # Encabezado
+    center("Control Gym", y, 12); y -= 6 * mm
+    center("Ticket de Venta", y, 11); y -= 8 * mm
+
+    left(f"N°: {venta.id}", y); y -= 5 * mm
+    left(venta.fecha.strftime("Fecha: %d/%m/%Y %H:%M"), y); y -= 5 * mm
+    left(f"Método: {venta.get_metodo_pago_display()}", y); y -= 5 * mm
+    if venta.cliente:
+        left(f"Cliente: {venta.cliente}", y); y -= 5 * mm
+
+    # Separador
+    c.line(6 * mm, y, ancho - 6 * mm, y); y -= 5 * mm
+    left("Producto", y); c.drawRightString(ancho - 6 * mm, y, "Subtotal"); y -= 4 * mm
+    c.line(6 * mm, y, ancho - 6 * mm, y); y -= 4 * mm
+
+    # Items
+    for it in venta.items.all():
+        nombre = f"{it.producto.nombre} x{it.cantidad}"
+        left(nombre[:30], y)
+        c.drawRightString(ancho - 6 * mm, y, f"${it.subtotal:.2f}")
+        y -= 5 * mm
+
+    # Total
+    c.line(6 * mm, y, ancho - 6 * mm, y); y -= 6 * mm
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(6 * mm, y, "TOTAL:")
+    c.drawRightString(ancho - 6 * mm, y, f"${venta.total:.2f}")
+    y -= 8 * mm
+
+    # Observación
+    if venta.observacion:
+        left("Obs:", y); y -= 5 * mm
+        c.setFont("Helvetica", 9)
+        for line in str(venta.observacion).splitlines():
+            left(line[:40], y); y -= 4 * mm
+        y -= 2 * mm
+
+    # Footer
+    c.line(6 * mm, y, ancho - 6 * mm, y); y -= 6 * mm
+    center("¡Gracias por su compra!", y, 10)
+
+    c.showPage()
+    c.save()
+    return response

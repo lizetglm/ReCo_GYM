@@ -35,6 +35,10 @@ urlpatterns = [
     #Rutas de Caja
     path('caja/', views.CajaView.as_view(), name='caja'),
     
+    # Ventas de productos
+    path('pagos/productos/', views.pago_productos, name='pago_productos'),
+    path('pagos/productos/ticket/<int:venta_id>/', views.ticket_venta_pdf, name='ticket_venta_pdf'),
+    
     # API (Existente)
     path('api/', include('gimnasio.api_urls')), 
 ]

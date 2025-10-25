@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Entrenador, Socio, Suscripcion, Pago, Clase, InscripcionClase
+from .models import Entrenador, Socio, Suscripcion, Pago, Clase, InscripcionClase, Producto, Caja, VentaItem, CajaMovimiento
 
 @admin.register(Entrenador)
 class EntrenadorAdmin(admin.ModelAdmin):
@@ -46,3 +46,28 @@ class InscripcionClaseAdmin(admin.ModelAdmin):
     list_display = ('id_inscripcion', 'socio', 'clase', 'fecha_inscripcion', 'pago_asociado')
     list_filter = ('fecha_inscripcion',)
     raw_id_fields = ('socio', 'clase', 'pago_asociado')
+
+
+class VentaItemInline(admin.TabularInline):
+    model = VentaItem
+    extra = 0
+
+
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "precio")
+    search_fields = ("nombre",)
+
+
+@admin.register(Caja)
+class CajaAdmin(admin.ModelAdmin):
+    list_display = ("id", "fecha", "total", "metodo_pago", "cliente")
+    list_filter = ("metodo_pago", "fecha")
+    inlines = [VentaItemInline]
+
+
+@admin.register(CajaMovimiento)
+class CajaMovimientoAdmin(admin.ModelAdmin):
+    list_display = ('fecha', 'tipo', 'descripcion', 'metodo_pago', 'monto', 'venta', 'socio')
+    list_filter = ('tipo', 'metodo_pago', 'fecha')
+    search_fields = ('descripcion',)

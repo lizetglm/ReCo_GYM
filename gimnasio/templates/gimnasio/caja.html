@@ -4,14 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Gym - Caja de Pagos</title>
+    <title>Control Gym - Caja</title>
     <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
-    <style>
-        /* Estilos básicos para la tabla si no están en estilos.css */
-        .table-responsive { overflow-x: auto; }
-        .table th, .table td { white-space: nowrap; }
-        .monto-positivo { color: green; font-weight: bold; }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -20,6 +14,7 @@
             <ul class="nav-menu">
                 <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
                 <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
                 <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
                 <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li> 
                 <li><a href="{% url 'caja' %}" class="active">💰 Caja</a></li> <li><a href="#">📱 WhatsApp</a></li>
@@ -30,110 +25,58 @@
 
         <main class="main-content">
             <header class="header-bar">
-                <h1 class="header-title">💰 Historial y Control de Pagos</h1>
+                <h1 class="header-title">💰 Caja</h1>
                 <div class="user-actions">
-                    </div>
+                    <span>Total de hoy: <strong>${{ total_hoy|floatformat:2 }}</strong></span>
+                </div>
             </header>
 
-            <div class="content-wrapper">
-                <h3>Detalle de Transacciones</h3>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="pagos-table">
+            <section class="search-container">
+                <div class="search-header" style="align-items:center;justify-content:space-between;">
+                    <h2>Movimientos recientes</h2>
+                    <a href="{% url 'pago_productos' %}" class="btn btn-primary">+ Nueva venta</a>
+                </div>
+                <div class="table-container">
+                    <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Fecha</th>
-                                <th>Socio</th>
-                                <th>Tipo de Pago</th>
-                                <th>Detalle</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
                                 <th>Método</th>
-                                <th>Monto</th>
+                                <th style="text-align:right;">Monto</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="7" class="text-center">Cargando datos...</td></tr>
+                            {% if movimientos %}
+                                {% for m in movimientos %}
+                                <tr>
+                                    <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ m.get_tipo_display }}</td>
+                                    <td>{{ m.descripcion }}</td>
+                                    <td>{{ m.get_metodo_pago_display }}</td>
+                                    <td style="text-align:right;">${{ m.monto|floatformat:2 }}</td>
+                                    <td>
+                                        {% if m.venta_id %}
+                                          <a class="btn btn-secondary" href="{% url 'ticket_venta_pdf' m.venta_id %}" target="_blank">Ticket</a>
+                                        {% else %}
+                                          —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" style="text-align:center; color:var(--sky-500);">Sin movimientos aún</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const API_URL = "{% url 'pago-list' %}"; 
-            const tableBody = document.querySelector('#pagos-table tbody');
-            
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Cargando datos...</td></tr>'; 
-
-            fetch(API_URL)
-                .then(response => {
-                    if (!response.ok) {
-                        // Si el estado HTTP no es 200, lanzar un error
-                        throw new Error(`Error HTTP: ${response.status} (${response.statusText})`);
-                    }
-                    return response.json();
-                })
-                .then(responseData => {
-                    let pagos = [];
-                    
-                    // Lógica para manejar la paginación (clave 'results')
-                    if (responseData && responseData.results && Array.isArray(responseData.results)) {
-                        pagos = responseData.results;
-                    } else if (Array.isArray(responseData)) {
-                        pagos = responseData; 
-                    }
-                    
-                    tableBody.innerHTML = ''; // Limpiar el mensaje de carga
-
-                    if (pagos.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron pagos.</td></tr>';
-                        return;
-                    }
-
-                    pagos.forEach(pago => {
-                        const row = tableBody.insertRow();
-                        const cleanValue = (value) => value || '-';
-                        
-                        let detalle_string = '-';
-                        
-                        //LÓGICA DE DETALLE ACTUALIZADA USANDO LOS NUEVOS OBJETOS
-                        if (pago.tipo_pago === 'gimnasio' && pago.suscripcion_display) {
-                            // Accedemos a las propiedades del objeto anidado suscripcion_display
-                            const s = pago.suscripcion_display;
-                            const estado = s.activa ? 'ACTIVA' : 'INACTIVA';
-                            detalle_string = `Tipo: ${s.tipo} (${estado}) | Inicio: ${s.fecha_inicio} | Fin: ${s.fecha_fin} | Monto: $${parseFloat(s.monto_total).toFixed(2)}`;
-                        } else if (pago.tipo_pago === 'clase' && pago.clase_display) {
-                            // Accedemos a las propiedades del objeto anidado clase_display
-                            const c = pago.clase_display;
-                            const fechaHora = new Date(c.fecha_hora).toLocaleDateString() + ' ' + new Date(c.fecha_hora).toLocaleTimeString();
-                            detalle_string = `Clase: ${c.nombre} | Instructor: ${cleanValue(c.entrenador_nombre)} | Precio: $${parseFloat(c.precio).toFixed(2)} | Hora: ${fechaHora}`;
-                        }
-
-                        // 1. ID
-                        row.insertCell().textContent = cleanValue(pago.id_pago); 
-                        // 2. Fecha
-                        row.insertCell().textContent = new Date(pago.fecha_pago).toLocaleDateString();
-                        // 3. Socio
-                        row.insertCell().textContent = cleanValue(pago.socio_display);
-                        // 4. Tipo de Pago
-                        const tipoPago = pago.tipo_pago === 'gimnasio' ? 'Suscripción' : 'Clase';
-                        row.insertCell().textContent = tipoPago;
-                        // 5. Detalle (El campo complejo)
-                        row.insertCell().textContent = detalle_string;
-                        // 6. Método
-                        row.insertCell().textContent = cleanValue(pago.metodo);
-                        // 7. Monto
-                        const montoCell = row.insertCell();
-                        montoCell.textContent = `$${parseFloat(pago.monto).toFixed(2)}`;
-                        montoCell.classList.add('monto-positivo');
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al cargar los pagos:', error);
-                    tableBody.innerHTML = `<tr><td colspan="7" class="text-danger">Error al cargar los datos de pagos: ${error.message}. Verifica la consola para más detalles.</td></tr>`;
-                });
-        });
-    </script>
 </body>
 </html>

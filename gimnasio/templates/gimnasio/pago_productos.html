@@ -1,0 +1,148 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Venta de productos</title>
+  <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+  <link rel="stylesheet" href="{% static 'gimnasio/css/pago_productos.css' %}">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <div class="sidebar-logo">🏋️ Control Gym</div>
+      <ul class="nav-menu">
+        <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+        <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+        <li><a href="{% url 'pago_productos' %}" class="active">🛒 Nueva venta</a></li>
+        <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+        <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+        <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+        <li><a href="#">📱 WhatsApp</a></li>
+        <li><a href="#">📈 Estadísticas</a></li>
+        <li><a href="#">➕ Más</a></li>
+      </ul>
+    </nav>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <h1 class="header-title">🛒 Venta de productos</h1>
+        <div class="user-actions">
+          <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Dashboard</a>
+          <a href="{% url 'logout_usuario' %}" class="btn btn-primary">Cerrar Sesión</a>
+        </div>
+      </header>
+
+      <div class="venta-card">
+        {% if messages %}
+          <ul class="messages">
+            {% for m in messages %}
+              <li class="{{ m.tags }}">{{ m }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="venta-filtros">
+            <label>Método:</label>
+            <select name="metodo_pago" class="select">
+              <option value="efectivo">Efectivo</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="transferencia">Transferencia</option>
+            </select>
+            <input type="text" class="input" name="cliente" placeholder="Cliente (opcional)">
+            <input type="text" class="input grow" name="observacion" placeholder="Observación (opcional)">
+          </div>
+
+          <table class="venta-grid" id="tabla-items">
+            <thead>
+              <tr>
+                <th style="width:45%">Producto</th>
+                <th style="width:15%">Cantidad</th>
+                <th style="width:20%">Precio unitario</th>
+                <th style="width:20%">Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5">
+                  <button type="button" class="btn btn-link" onclick="agregarFila()">+ Agregar producto</button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="venta-acciones">
+            <div class="total">Total: $<span id="total">0.00</span></div>
+            <button type="submit" class="btn btn-primary">Registrar venta</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <template id="tpl-fila">
+    <tr>
+      <td>
+        <select name="producto_id[]" class="select" onchange="sincronizarPrecio(this)" required>
+          <option value="">Selecciona…</option>
+          {% for p in productos %}
+            <option value="{{ p.id }}" data-precio="{{ p.precio }}">{{ p.nombre }} — ${{ p.precio }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td>
+        <input type="number" name="cantidad[]" class="input" value="1" min="1" oninput="recalcularFila(this)">
+      </td>
+      <td>
+        <input type="number" name="precio_unitario[]" class="input" value="0.00" step="0.01" min="0" oninput="recalcularFila(this)">
+      </td>
+      <td>
+        $<span class="subtotal">0.00</span>
+      </td>
+      <td>
+        <button type="button" class="btn btn-danger" onclick="eliminarFila(this)">Quitar</button>
+      </td>
+    </tr>
+  </template>
+
+  <script>
+    const tbody = document.querySelector('#tabla-items tbody');
+    function agregarFila(){
+      const tpl = document.querySelector('#tpl-fila').content.cloneNode(true);
+      tbody.appendChild(tpl);
+    }
+    function eliminarFila(btn){
+      btn.closest('tr').remove();
+      recalcularTotal();
+    }
+    function sincronizarPrecio(sel){
+      const opt = sel.options[sel.selectedIndex];
+      const precio = opt ? parseFloat(opt.getAttribute('data-precio')||'0') : 0;
+      const fila = sel.closest('tr');
+      fila.querySelector('input[name="precio_unitario[]"]').value = precio.toFixed(2);
+      recalcularFila(sel);
+    }
+    function recalcularFila(el){
+      const fila = el.closest('tr');
+      const cant = parseInt(fila.querySelector('input[name="cantidad[]"]').value||'0');
+      const precio = parseFloat(fila.querySelector('input[name="precio_unitario[]"]').value||'0');
+      const subtotal = Math.max(0, cant) * Math.max(0, precio);
+      fila.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+      recalcularTotal();
+    }
+    function recalcularTotal(){
+      let total = 0;
+      document.querySelectorAll('.subtotal').forEach(s=> total += parseFloat(s.textContent||'0'));
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+    // fila inicial
+    agregarFila();
+  </script>
+</body>
+</html>
