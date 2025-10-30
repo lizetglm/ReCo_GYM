@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Perfil de {{ socio.nombre }}</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+    <style>
+        /* Estilos adicionales específicos para este perfil */
+        .profile-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .profile-section h4 {
+            color: var(--sky-700);
+            border-bottom: 2px solid var(--sky-200);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .subscription-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .sub-item {
+            padding: 15px;
+            border-left: 4px solid var(--sky-500);
+            background-color: var(--sky-50);
+            border-radius: 6px;
+        }
+        .sub-item p {
+            margin: 5px 0;
+            color: var(--sky-800);
+        }
+        .status-activo-perfil {
+            color: #16a34a; 
+            font-weight: bold;
+        }
+        .status-inactivo-perfil {
+            color: #dc2626; 
+            font-weight: bold;
+        }
+        .next-payment-date {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--sky-600);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <ul class="nav-menu">
+                <li><a href="{% url 'perfil_socio' %}">👥 Socio</a></li>
+                <li><a href="{% url 'perfil_lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'perfil_instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Perfil de {{ socio.nombre }} {{ socio.apellido }}</h1>
+                
+            </header>
+
+            <section class="member-profile">
+                <div style="text-align: center;">
+                    <div class="profile-image">
+                        {{ socio.nombre|slice:":1" }}{{ socio.apellido|slice:":1" }}
+                    </div>
+                </div>
+                <div class="profile-details">
+                    <h3>{{ socio.nombre }} {{ socio.apellido }}</h3>
+                    <p><strong>ID Socio:</strong> {{ socio.id_socio }}</p>
+                    <p><strong>Teléfono:</strong> {{ socio.telefono }}</p>
+                    <p><strong>Domicilio:</strong> {{ socio.domicilio }}</p>
+                    <p><strong>Tipo de Socio:</strong> {{ socio.get_tipo_socio_display }}</p>
+                    
+                    <p>
+                        <strong>Estado:</strong> 
+                        <span class="{% if socio.activo %}status-activo-perfil{% else %}status-inactivo-perfil{% endif %}">
+                            {% if socio.activo %}ACTIVO{% else %}INACTIVO{% endif %}
+                        </span>
+                    </p>
+                </div>
+            </section>
+
+            <section class="profile-section">
+                <h4>Detalles de Suscripción (Interno)</h4>
+                {% if socio.tipo_socio == 'interno' %}
+                    {% if suscripcion %}
+                        <div class="subscription-details">
+                            <div class="sub-item">
+                                <p><strong>Tipo:</strong> {{ suscripcion.get_tipo_display }}</p>
+                            </div>
+                            <div class="sub-item">
+                                <p><strong>Costo:</strong> ${{ suscripcion.monto_total|floatformat:2 }}</p>
+                            </div>
+                            <div class="sub-item">
+                                <p><strong>Inicio:</strong> {{ suscripcion.fecha_inicio|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="sub-item">
+                                <p><strong>Vencimiento:</strong> {{ suscripcion.fecha_fin|date:"d/m/Y" }}</p>
+                                <p class="next-payment-date">
+                                    {% if fecha_proximo_pago %}
+                                        Próximo pago: {{ fecha_proximo_pago|date:"d/m/Y" }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="sub-item">
+                                <p><strong>Estado:</strong> 
+                                    <span class="{% if suscripcion.activa %}status-activo-perfil{% else %}status-inactivo-perfil{% endif %}">
+                                        {% if suscripcion.activa %}ACTIVA{% else %}EXPIRADA{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="sub-item">
+                                <a href="{% url 'socio_form' socio.pk %}" class="btn btn-primary" style="font-size: 14px; padding: 8px 15px;">Renovar / Pagar</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-data">
+                            El socio **{{ socio.nombre }}** no tiene una suscripción activa.
+                            <br><a href="{% url 'socio_form' socio.pk %}" class="btn btn-primary" style="margin-top: 15px;">Crear Suscripción</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="no-data" style="color: var(--sky-900);">
+                        Este socio es de tipo **Externo** y paga por clase.
+                    </div>
+                {% endif %}
+            </section>
+            
+            <section class="profile-section">
+                <h4>Clases Inscritas</h4>
+                <div class="table-container">
+                    {% if clases_inscritas %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Clase</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Entrenador</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inscripcion in clases_inscritas %}
+                                <tr>
+                                    <td>{{ inscripcion.clase.nombre }}</td>
+                                    <td>{{ inscripcion.clase.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ inscripcion.clase.entrenador.nombre }}</td>
+                                    
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="no-data">
+                            Este socio no está inscrito en ninguna clase activa.
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+            
+            <section class="profile-section">
+                <h4>Historial de Pagos (Últimos 10)</h4>
+                <div class="table-container">
+                    {% if historial_pagos %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Concepto</th>
+                                    <th>Monto</th>
+                                    <th>Método</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pago in historial_pagos %}
+                                <tr>
+                                    <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if pago.suscripcion %}Mensualidad{% elif pago.clase %}Clase{% else %}Otro{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if pago.suscripcion %}{{ pago.suscripcion.get_tipo_display }}{% elif pago.clase %}{{ pago.clase.nombre }}{% else %}Pago General{% endif %}
+                                    </td>
+                                    <td>${{ pago.monto|floatformat:2 }}</td>
+                                    <td>{{ pago.metodo|default:"N/A" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="no-data">
+                            No hay pagos registrados para este socio.
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+        </main>
+    </div>
+</body>
+</html>

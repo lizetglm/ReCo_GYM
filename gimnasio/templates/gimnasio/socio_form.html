@@ -1,0 +1,259 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - {% if socio %}Editar{% else %}Agregar{% endif %} Socio</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}" class="active">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Datos del Socio</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <div class="form-container">
+                <div class="form-header">
+                    <div class="photo-upload">👤</div>
+                    <h2>Información del Socio</h2>
+                </div>
+                
+                <form method="post" action="{% if socio.pk %}{% url 'socio_form' socio.pk %}{% else %}{% url 'socio_form' %}{% endif %}">
+                    {% csrf_token %}
+                    {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    <div class="form-grid">
+                        <div class="column-group">
+                            <h2>Información Personal</h2>
+                            <div class="form-group">
+                                <label for="nombre">Nombre *</label>
+                                <input type="text" id="nombre" name="nombre" value="{{ nombre_value }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="apellido">Apellido *</label>
+                                <input type="text" id="apellido" name="apellido" value="{{ apellido_value }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="telefono">Teléfono *</label>
+                                <input type="tel" id="telefono" name="telefono" value="{{ telefono_value }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="domicilio">Domicilio *</label>
+                                <input type="text" id="domicilio" name="domicilio" value="{{ domicilio_value }}" required>
+                            </div>
+                        </div>
+
+                        <div class="column-group">
+                            <h2>Tipo y Suscripción</h2>
+
+                            <div class="form-group">
+                                <label for="tipo_socio">Tipo de Socio *</label>
+                                <select id="tipo_socio" name="tipo_socio" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="interno" {% if tipo_socio_value == 'interno' %}selected{% endif %}>Interno (Suscripción Gimnasio)</option>
+                                    <option value="externo" {% if tipo_socio_value == 'externo' %}selected{% endif %}>Externo (Pago por Clase)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- El div de suscripcion-fields queda igual, ya que suscripcion_tipo es None-safe -->
+                            <div id="suscripcion-fields" 
+                                style="display: {% if tipo_socio_value == 'interno' %}block{% else %}none{% endif %};">
+                                <div class="card-title">Datos de Suscripción</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="tipo_suscripcion">Tipo de Suscripción</label>
+                                        <select id="tipo_suscripcion" name="tipo_suscripcion">
+                                            <option value="">Seleccione...</option>
+                                            <option value="mensual" {% if post_data.tipo_suscripcion == 'mensual' or suscripcion_tipo == 'mensual' %}selected{% endif %}>Mensual ($500)</option>
+                                            <option value="trimestral" {% if post_data.tipo_suscripcion == 'trimestral' or suscripcion_tipo == 'trimestral' %}selected{% endif %}>Trimestral ($1500)</option>
+                                            <option value="anual" {% if post_data.tipo_suscripcion == 'anual' or suscripcion_tipo == 'anual' %}selected{% endif %}>Anual ($6000)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="fecha_inicio">Fecha de Inicio Suscripción</label>
+                                        <input type="date" 
+                                            id="fecha_inicio" 
+                                            name="fecha_inicio" 
+                                            value="{% if post_data.fecha_inicio %}{{ post_data.fecha_inicio }}{% else %}{{ suscripcion_fecha_inicio }}{% endif %}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'socios_list' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar Socio</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const form = document.querySelector('form');
+    const esCreacionNueva = {% if not socio.pk %}true{% else %}false{% endif %};
+
+    if (esCreacionNueva) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const csrfToken = getCookie('csrftoken');
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            };
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creando socio...';
+            submitBtn.disabled = true;
+
+            try {
+                // PETICION 1: Crear socio (via socio_form con AJAX)
+                console.log('Petición 1: Creando socio...');
+                const createResponse = await fetch("{% url 'socio_form' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: headers
+                });
+
+                if (!createResponse.ok) {
+                    let errMsg = 'Error al crear socio';
+                    try {
+                        const errData = await createResponse.json();
+                        errMsg = errData.error || errMsg;
+                    } catch (parseErr) {
+                        const errText = await createResponse.text();
+                        errMsg = errText.substring(0, 200) + '... (ver console para full error)';
+                        console.error('Respuesta no-JSON:', errText);
+                    }
+                    throw new Error(errMsg);
+                }
+
+                const createData = await createResponse.json();
+                console.log('Socio creado:', createData);
+
+                // PETICION 2: Enviar WhatsApp (encadenada, solo si exito en 1ra)
+                console.log('Petición 2: Enviando WhatsApp...');
+                const waFormData = new FormData();
+                waFormData.append('telefono', formData.get('telefono'));
+                waFormData.append('id_socio', createData.id_socio);
+                waFormData.append('password', createData.password);
+                waFormData.append('nombre', formData.get('nombre'));
+                waFormData.append('apellido', formData.get('apellido'));
+
+                const waResponse = await fetch("{% url 'enviar_whatsapp_api' %}", {
+                    method: 'POST',
+                    body: waFormData,
+                    headers: headers
+                });
+
+                if (!waResponse.ok) {
+                    const waErrData = await waResponse.json().catch(() => ({}));
+                    throw new Error(waErrData.error || 'Error en WhatsApp');
+                }
+
+                const waResult = await waResponse.json();
+                if (waResult.sent) {
+                } else {
+                    alert(`Socio creado, pero WhatsApp falló: ${waResult.error || 'Desconocido'}. Credenciales: Usuario ${createData.id_socio}, Pass: ${createData.password}`);
+                }
+
+                // Redirigir a lista de socios
+                window.location.href = "{% url 'socios_list' %}";
+
+            } catch (error) {
+                console.error('Error en la cadena de promesas:', error);
+                alert(`Fallo en el proceso: ${error.message}. Ver console para detalles.`);
+            } finally {
+                // Reset botón
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+        document.getElementById('tipo_socio').addEventListener('change', function() {
+            var fields = document.getElementById('suscripcion-fields');
+            // Muestra los campos de suscripción solo si el tipo de socio es 'interno'
+            fields.style.display = (this.value === 'interno') ? 'block' : 'none';
+
+            // Opcional: Para hacer los campos de suscripción requeridos solo si son visibles
+            var tipoSuscripcion = document.getElementById('tipo_suscripcion');
+            var fechaInicio = document.getElementById('fecha_inicio');
+
+            if (this.value === 'interno') {
+                tipoSuscripcion.setAttribute('required', 'required');
+                fechaInicio.setAttribute('required', 'required');
+            } else {
+                tipoSuscripcion.removeAttribute('required');
+                fechaInicio.removeAttribute('required');
+            }
+        });
+
+        // Ejecutar al cargar para manejar el estado inicial en caso de edición o error de formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            var tipoSocio = document.getElementById('tipo_socio');
+            var fields = document.getElementById('suscripcion-fields');
+            var tipoSuscripcion = document.getElementById('tipo_suscripcion');
+            var fechaInicio = document.getElementById('fecha_inicio');
+
+            if (tipoSocio.value === 'interno') {
+                fields.style.display = 'block';
+                tipoSuscripcion.setAttribute('required', 'required');
+                fechaInicio.setAttribute('required', 'required');
+            } else {
+                fields.style.display = 'none';
+                tipoSuscripcion.removeAttribute('required');
+                fechaInicio.removeAttribute('required');
+            }
+        });
+    </script>
+</body>
+</html>

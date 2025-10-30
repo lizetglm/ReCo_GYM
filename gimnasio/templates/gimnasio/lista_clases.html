@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Actividades</title> 
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}" class="active">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Clases Disponibles</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <div class="action-buttons">
+                <a href="{% url 'clase_form' %}" class="btn btn-primary">➕ Agregar Clase</a>
+                {% if query %}
+                    <p class="query-info">Buscando: "{{ query }}"</p>
+                {% endif %}
+            </div>
+            
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Clase</h2>
+                    <form action="{% url 'lista_clases' %}" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o ID de la clase..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="table-container">
+                {% if clases %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Horario</th>
+                                <th>Duración (min)</th>
+                                <th>Entrenador</th>
+                                <th>Precio</th>
+                                <th>Participantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clase in clases %}
+                                <tr>
+                                    <td>{{ clase.id_clase }}</td>
+                                    <td>{{ clase.nombre }}</td>
+                                    <td>{{ clase.fecha_hora|date:"d M H:i" }}</td>
+                                    <td>{{ clase.duracion_minutos }}</td>
+                                    <td>{{ clase.entrenador.nombre }}</td>
+                                    <td>${{ clase.precio }}</td>
+                                    <td>{{ clase.participantes_actuales }}/{{ clase.max_participantes }}</td>
+                                     <td class="action-cell">
+                                        {% if clase.pk %}
+                                            <a href="{% url 'inscripcion_clase_detalle' clase.pk %}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">
+                                                Inscribir
+                                            </a>
+                                            <a href="{% url 'clase_form' clase.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                                            <button type="button" class="btn btn-danger" 
+                                                    onclick="eliminarClaseAjax({{ clase.pk }}, '{{ clase.nombre }}')" 
+                                                    style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
+                                                Eliminar
+                                            </button>
+                                        {% else %}
+                                             <span class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px; opacity: 0.6; cursor: not-allowed;">No disponible</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron clases con "{{ query }}".
+                        {% else %}
+                            No hay clases disponibles. ¡Agrega la primera!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Función de utilidad para obtener el Token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrfToken = getCookie('csrftoken') || document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        // Petición AJAX usando Encadenamiento de Promesas (Punto 3: Eliminar)
+        function eliminarClaseAjax(clasePk, nombreClase) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar la clase ${nombreClase}? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            const url = `/api/clases/${clasePk}/`;
+
+            fetch(url, {
+                method: 'DELETE', 
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    alert(`Clase "${nombreClase}" eliminada correctamente.`);
+                    window.location.reload();
+                } else if (response.status === 404) {
+                    throw new Error('La clase no fue encontrada.');
+                } else {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.detail || 'El servidor rechazó la solicitud.');
+                    }).catch(() => {
+                        throw new Error('El servidor rechazó la solicitud.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al eliminar clase:', error);
+                alert(`Fallo al eliminar: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - {% if clase %}Editar{% else %}Agregar{% endif %} Clase</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}" class="active">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">{% if clase %}Editar{% else %}Agregar{% endif %} Clase</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="card form-card">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="id_clase">ID Clase:</label>
+                                <input type="text" id="id_clase" name="id_clase" value="{% if clase %}{{ clase.id_clase }}{% else %}{{ clase.id_clase }}{% endif %}" {% if clase %}readonly{% endif %} required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre">Nombre de la Clase:</label>
+                                <input type="text" id="nombre" name="nombre" value="{% if clase %}{{ clase.nombre }}{% endif %}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="entrenador">Instructor:</label>
+                                <select id="entrenador" name="entrenador" required>
+                                    <option value="">Selecciona un Entrenador</option>
+                                    {% for entrenador in entrenadores %}
+                                        <option value="{{ entrenador.pk }}" {% if clase and clase.entrenador.pk == entrenador.pk %}selected{% endif %}>
+                                            {{ entrenador.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="descripcion">Descripción:</label>
+                                <textarea id="descripcion" name="descripcion" rows="3">{% if clase %}{{ clase.descripcion }}{% endif %}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="fecha_hora">Fecha y Hora:</label>
+                                <input type="datetime-local" id="fecha_hora" name="fecha_hora" value="{% if clase %}{{ clase.fecha_hora|date:'Y-m-d\TH:i' }}{% endif %}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="duracion_minutos">Duración (minutos):</label>
+                                <input type="number" id="duracion_minutos" name="duracion_minutos" value="{% if clase %}{{ clase.duracion_minutos }}{% else %}60{% endif %}" required min="10">
+                            </div>
+                            <div class="form-group">
+                                <label for="max_participantes">Máx. Participantes:</label>
+                                <input type="number" id="max_participantes" name="max_participantes" value="{% if clase %}{{ clase.max_participantes }}{% else %}20{% endif %}" required min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="precio">Precio ($):</label>
+                                <input type="number" step="0.01" id="precio" name="precio" value="{% if clase %}{{ clase.precio }}{% else %}0.00{% endif %}" required min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'lista_clases' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar Clase</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script>
+        const selectEntrenador = document.getElementById('entrenador');
+        const inputPrecio = document.getElementById('precio');
+        
+        // Función de dependencia que usa Async/Await (Punto 3: Dependencia)
+        async function cargarPrecioPorEntrenador() {
+            const entrenadorPk = selectEntrenador.value;
+            if (!entrenadorPk) {
+                inputPrecio.value = '0.00';
+                return;
+            }
+
+            try {
+                //PETICIÓN 1 (Async/Await): Obtener datos del Entrenador (usando el ViewSet DRF)
+                const urlEntrenador = `/api/entrenadores/${entrenadorPk}/`;
+                const response = await fetch(urlEntrenador);
+                
+                if (!response.ok) {
+                    throw new Error('Error al obtener datos del entrenador.');
+                }
+                const entrenadorData = await response.json();
+
+                // PETICIÓN 2 (Dependencia): Usar el salario del entrenador para sugerir el precio.
+                const salario = parseFloat(entrenadorData.salario) || 0;
+                
+                // Sugerir un precio basado en el salario (ej: 5% del salario mensual como precio de clase)
+                const precioClase = (salario * 0.05).toFixed(2); 
+                inputPrecio.value = precioClase;
+
+            } catch (error) {
+                console.error('Error en la petición AJAX (Dependencia):', error);
+                inputPrecio.value = '0.00';
+            }
+        }
+
+        selectEntrenador.addEventListener('change', cargarPrecioPorEntrenador);
+        if (selectEntrenador.value) {
+            cargarPrecioPorEntrenador();
+        }
+    </script>
+</body>
+</html>

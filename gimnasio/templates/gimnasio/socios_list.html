@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Socios</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}" class="active">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+        <h1 class="header-title">Gestión de Socios</h1>
+        <div class="user-actions">
+            <span>Hola, Admin 👋</span>
+            <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+        </div>
+    </header>
+    
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if temp_password_data %}
+        <div class="alert-password">
+            <p><strong>🎉 CUENTA CREADA - ANOTAR CREDENCIALES</strong></p>
+            <p>Credenciales de acceso para el nuevo socio <strong>{{ temp_password_data.id_socio }}</strong> (no se mostrarán de nuevo):</p>
+            <div class="credentials-box">
+                    <p>✅ Credenciales enviadas por WhatsApp exitosamente.</p>
+                    <p><strong>ID de Usuario:</strong> <code>{{ temp_password_data.id_socio }}</code></p>
+                    <p><strong>Contraseña Temporal:</strong> <span>{{ temp_password_data.password }}</span></p>
+                    <p class="warning-text">⚠️ Es responsabilidad del administrador comunicar esta contraseña al socio.</p>
+            </div>
+        </div>
+    {% endif %}
+    <div class="card">
+        </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'socio_form' %}" class="btn btn-primary">➕ Agregar Socio</a>
+                {% if query %}
+                    <p class="query-info">Buscando: "{{ query }}"</p>
+                {% endif %}
+            </div>
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Socio</h2>
+                    <form action="{% url 'socios_list' %}" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o ID..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
+
+            <div class="table-container">
+                {% if socios %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Vencimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for socio in socios %}
+                                <tr data-socio-pk="{{ socio.pk }}">
+                                    <td>{{ socio.id_socio|default:"N/A" }}</td>
+                                    <td>{{ socio.nombre }} {{ socio.apellido }}</td>
+                                    <td>{{ socio.telefono|default:"N/A" }}</td>
+                                    <td>{{ socio.get_tipo_socio_display|default:"N/A" }}</td>
+                                    {% if socio.tipo_socio == 'interno' %}
+                                        <td><span class="status-{{ socio.estado }}">{{ socio.get_estado_display|default:"N/A" }}</span></td>
+                                        {% with suscripcion=socio.suscripcion_activa %}
+                                            {% if suscripcion %}
+                                                <td>{{ suscripcion.fecha_fin|date:"d/m/Y" }}</td>
+                                            {% else %}
+                                                <td>Sin suscripción</td>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% else %}
+                                        <td>N/A (Pago por clase)</td>
+                                        <td>N/A</td>
+                                    {% endif %}
+                                    <td>
+                                        {% if socio.pk %}
+                                        <a href="{% url 'socio_form' socio.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                                        <button type="button" class="btn btn-danger" 
+                                                onclick="eliminarSocioAjax({{ socio.pk }}, '{{ socio.nombre }} {{ socio.apellido }}')"
+                                                style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
+                                            Eliminar
+                                        </button>
+                                        {% else %}
+                                            <span style="color: red; font-size: 12px;">Error de dato</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron socios con "{{ query }}".
+                        {% else %}
+                            No hay socios registrados aún. ¡Agrega el primero!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrfToken = getCookie('csrftoken'); 
+
+        function eliminarSocioAjax(socioPk, nombreSocio) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar al socio ${nombreSocio}? Esta acción eliminará también su cuenta de usuario y todas sus suscripciones/pagos asociados. NO se puede deshacer.`)) {
+                return;
+            }
+            
+            const url = `/api/socios/${socioPk}/`; 
+
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => {
+                if (response.status === 204) { 
+                    alert(`Socio "${nombreSocio}" eliminado correctamente.`);
+                    const fila = document.querySelector(`tr[data-socio-pk="${socioPk}"]`);
+                    if (fila) {
+                        fila.remove();
+                    } else {
+                        window.location.reload(); 
+                    }
+                } else if (response.status === 404) {
+                    throw new Error('El socio no fue encontrado en el sistema.');
+                } else {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.detail || 'Error desconocido del servidor.');
+                    }).catch(() => {
+                        throw new Error('Fallo al eliminar el recurso (Código: ' + response.status + ')');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al eliminar socio:', error);
+                alert(`Fallo al eliminar el socio: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+</html>

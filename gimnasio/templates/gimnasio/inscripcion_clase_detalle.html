@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Inscripción a {{ clase.nombre }}</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}" class="active">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li> 
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Inscripción a Clase: {{ clase.nombre }}</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+            
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <section class="clase-info-card">
+                <h2>Detalles de la Actividad</h2>
+                <div class="info-grid">
+                    <div><strong>ID Clase:</strong> {{ clase.id_clase }}</div>
+                    <div><strong>Entrenador:</strong> {{ clase.entrenador.nombre|default:"N/A" }}</div>
+                    <div><strong>Horario:</strong> {{ clase.fecha_hora|date:"H:i" }}</div>
+                    <div><strong>Capacidad:</strong> {{ clase.participantes.count }} / {{ clase.max_participantes }}</div>
+                    <div><strong>Precio:</strong> ${{ clase.precio }}</div>
+                    <div><strong>Duración:</strong> {{ clase.duracion_minutos }} min</div>
+                </div>
+            </section>
+            
+            <section class="form-container" style="margin-top: 20px;">
+                <div class="form-header">
+                    <h2>Registrar Nuevo Participante</h2>
+                </div>
+                <form method="post" action="{% url 'inscripcion_clase_detalle' clase.pk %}">
+                    {% csrf_token %}
+                    <div class="form-grid" style="grid-template-columns: 1fr auto; align-items: end;">
+                        <div class="form-group">
+                            <label for="socio_id">ID Socio (ej: S001)</label>
+                            <input type="text" id="socio_id" name="socio_id" placeholder="Ingresa el ID del Socio" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="height: 40px; margin-bottom: 5px;">
+                            Inscribir Socio
+                        </button>
+                    </div>
+                </form>
+            </section>
+            
+            <a href="{% url 'lista_clases' %}" class="btn btn-secondary" style="margin-top: 20px;">← Volver al Listado de Clases</a>
+
+            <section class="table-container" style="margin-top: 30px;">
+                <h2>Lista de Participantes ({{ participantes|length }})</h2>
+                {% if participantes %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Socio</th>
+                                <th>Nombre Completo</th>
+                                <th>Teléfono</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for socio in participantes %}
+                                <tr>
+                                    <td>{{ socio.id_socio|default:"N/A" }}</td>
+                                    <td>{{ socio.nombre }} {{ socio.apellido }}</td>
+                                    <td>{{ socio.telefono|default:"N/A" }}</td>
+                                <td class="action-cell">
+                                    <button type="button" class="btn btn-danger" 
+                                            onclick="eliminarInscripcion({{ clase.pk }}, {{ socio.pk }}, '{{ socio.nombre }}')" 
+                                            style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
+                                        Eliminar Inscripción
+                                    </button>
+                                </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-data">
+                        Aún no hay participantes inscritos en esta clase.
+                    </div>
+                {% endif %}
+            </section>
+            
+        </main>
+    </div>
+    <script>
+        // Petición AJAX usando Encadenamiento de Promesas (Punto 3: Eliminar)
+        function eliminarInscripcion(clasePk, socioPk, nombreSocio) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar la inscripción de ${nombreSocio} a esta clase?`)) {
+                return;
+            }
+            
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            
+            // La URL de eliminación espera un POST, por lo que lo simulamos con fetch.
+            const url = `{% url 'eliminar_inscripcion_clase' 0 0 %}`.replace('/0/', `/${clasePk}/`).replace('/0/', `/${socioPk}/`);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => {
+                if (response.ok || response.status === 302) {
+                    window.location.reload(); 
+                } else {
+                    throw new Error(`Código de respuesta: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error al eliminar inscripción:', error);
+                alert('Fallo al eliminar la inscripción. Inténtalo de nuevo.');
+            });
+        }
+    </script>
+</body>
+</html>

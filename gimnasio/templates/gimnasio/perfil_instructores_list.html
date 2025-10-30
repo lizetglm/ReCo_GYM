@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Instructores</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'perfil_socio' %}">👥 Socio</a></li>
+                <li><a href="{% url 'perfil_lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'perfil_instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Gestión de Instructores</h1>
+                <div class="user-actions">
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+        
+
+            <div class="table-container">
+                {% if entrenadores %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Especialidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrenador in entrenadores %}
+                                <tr>
+                                    <td>{{ entrenador.id_entrenador|default:"N/A" }}</td>
+                                    <td>{{ entrenador.nombre|default:"N/A" }}</td>
+                                    <td>{{ entrenador.especialidad|default:"N/A" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

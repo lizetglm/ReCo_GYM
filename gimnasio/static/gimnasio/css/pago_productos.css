@@ -1,0 +1,26 @@
+/* Estilos específicos de la pantalla de venta de productos */
+
+.venta-card{
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 4px 6px rgba(0,0,0,.05);
+}
+
+/* Tabla */
+.venta-grid{width:100%;border-collapse:collapse}
+.venta-grid th,.venta-grid td{padding:10px;border-bottom:1px solid #eee}
+
+/* Inputs simples */
+.select,.input{padding:10px;border:1px solid #d1d5db;border-radius:8px}
+.input.grow{flex:1}
+
+/* Cabecera local (reusa .header-bar global) */
+.venta-filtros{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+
+/* Acciones de totales */
+.venta-acciones{display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:12px}
+.total{font-size:1.25rem;font-weight:700}
+
+/* Botón tipo enlace */
+.btn-link{background:transparent;color:#0ea5e9;text-decoration:underline;border:none;padding:0}

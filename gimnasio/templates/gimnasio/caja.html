@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Caja</title>
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li> 
+                <li><a href="{% url 'caja' %}" class="active">💰 Caja</a></li> 
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">💰 Caja</h1>
+                <div class="user-actions">
+                    <span>Total de hoy: <strong>${{ total_hoy|floatformat:2 }}</strong></span>
+                </div>
+            </header>
+
+            <section class="search-container">
+                <div class="search-header" style="align-items:center;justify-content:space-between;">
+                    <h2>Movimientos recientes</h2>
+                    <a href="{% url 'pago_productos' %}" class="btn btn-primary">+ Nueva venta</a>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Método</th>
+                                <th style="text-align:right;">Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if movimientos %}
+                                {% for m in movimientos %}
+                                <tr>
+                                    <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ m.get_tipo_display }}</td>
+                                    <td>
+                                        {% if m.tipo == 'producto' %}
+                                            {# Venta de Productos (Usa la descripción predeterminada) #}
+                                            {{ m.descripcion }}
+                                        {% elif m.tipo == 'mensualidad' %}
+                                            {# Suscripción #}
+                                            Suscripción {{ m.suscripcion.get_tipo_display }}
+                                            {% if m.socio %}- {{ m.socio.nombre }} {{ m.socio.apellido }}{% endif %}
+                                        {% elif m.tipo == 'clase' %}
+                                            {# Pago por Clase #}
+                                            Clase: {{ m.inscripcion_clase.clase.nombre }}
+                                            {% if m.socio %}- {{ m.socio.nombre }} {{ m.socio.apellido }}{% endif %}
+                                        {% else %}
+                                            {{ m.descripcion }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ m.get_metodo_pago_display }}</td>
+                                    <td style="text-align:right;">${{ m.monto|floatformat:2 }}</td>
+                                    <td>
+                                        {% if m.venta_id %}
+                                          <a class="btn btn-secondary" href="{% url 'ticket_venta_pdf' m.venta_id %}" target="_blank">Ticket</a>
+                                        {% else %}
+                                          —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" style="text-align:center; color:var(--sky-500);">Sin movimientos aún</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

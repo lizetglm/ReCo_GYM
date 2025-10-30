@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Gym - Dashboard Alternativo</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'gimnasio/css/estilos.css' %}">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'dashboard' %}" class="active">📊 Dashboard</a></li>
+                <li><a href="{% url 'socios_list' %}">👥 Socios</a></li>
+                <li><a href="{% url 'pago_productos' %}">🛒 Nueva venta</a></li>
+                <li><a href="{% url 'lista_clases' %}">🏋️ Actividades</a></li>
+                <li><a href="{% url 'instructores_list' %}">👨‍🏫 Instructores</a></li>
+                <li><a href="{% url 'caja' %}">💰 Caja</a></li>
+                <li><a href="#">📱 WhatsApp</a></li>
+                <li><a href="#">📈 Estadísticas</a></li>
+                <li><a href="#">➕ Más</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="header-title">Panel de Control</h1>
+                <div class="user-actions">
+                    <span>Hola, Admin 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <section class="search-container">
+                <div class="search-header">
+                    <h2>Buscar Socio</h2>
+                    <form action="{% url 'socios_list' %}" style="display: flex; gap: 10px;">
+                        <input type="text" name="q" placeholder="Ingresa nombre o ID..." class="search-input-group">
+                        <button type="submit" class="search-btn">🔍 Buscar</button>
+                    </form>
+                </div>
+            </section>
+
+            
+
+            <div class="socios-grid">
+                {% if socios %}
+                    {% for socio in socios %}
+                        <div class="socio-card">
+                            <div class="avatar">👤</div>
+                            <div class="socio-info">
+                                <h3>{{ socio.nombre }} {{ socio.apellido }}</h3>
+                                <p><strong>ID:</strong> {{ socio.id_socio|default:"N/A" }}</p>
+                                <p><strong>Teléfono:</strong> {{ socio.telefono|default:"N/A" }}</p>
+                                <p><strong>Tipo:</strong> {{ socio.get_tipo_socio_display|default:"N/A" }}</p>
+                                {% if socio.tipo_socio == 'interno' %}
+                                    <p><strong>Estado:</strong> <span class="status-{{ socio.estado }}">{{ socio.get_estado_display|default:"N/A" }}</span></p>  <!-- Solo para internos -->
+                                    {% with suscripcion=socio.suscripcion_activa %}
+                                        {% if suscripcion %}
+                                            <p><strong>Vencimiento:</strong> {{ suscripcion.fecha_fin|date:"d/m/Y" }}</p>
+                                            <p><strong>Deuda:</strong> 
+                                                {% if suscripcion.fecha_fin < today %}
+                                                    <button class="deuda-btn">${{ suscripcion.monto_total }}</button>
+                                                {% else %}
+                                                    <button class="deuda-0">Deuda $0</button>
+                                                {% endif %}
+                                            </p>
+                                        {% else %}
+                                            <p><strong>Vencimiento:</strong> Sin suscripción</p>
+                                            <button class="deuda-0">Deuda $0</button>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <p><strong>Estado:</strong> N/A (Pago por clase)</p>  <!-- Para externos, simple -->
+                                    <p><strong>Vencimiento:</strong> N/A</p>
+                                    <button class="deuda-0">Deuda $0</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data">
+                        {% if query %}
+                            No se encontraron socios con "{{ query }}".
+                        {% else %}
+                            No hay socios registrados aún. ¡Agrega el primero desde Socios!
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>
