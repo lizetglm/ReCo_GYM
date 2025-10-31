@@ -22,6 +22,7 @@ from .whatsapp import send_whatsapp_message
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from datetime import datetime
+from django.conf import settings
 
 
 @login_required
@@ -351,6 +352,7 @@ def socio_form(request, pk=None):
         'tipo_socio_value': tipo_socio_value,
         'suscripcion_tipo': suscripcion_tipo,
         'suscripcion_fecha_inicio': suscripcion_fecha_inicio or '',
+        'twilio_configured': bool(getattr(settings, 'TWILIO_ACCOUNT_SID', '') and getattr(settings, 'TWILIO_AUTH_TOKEN', '') and getattr(settings, 'TWILIO_WHATSAPP_NUMBER', '')),
     }
     return render(request, 'gimnasio/socio_form.html', context)
 

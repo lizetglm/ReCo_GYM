@@ -119,6 +119,8 @@
             </div>
         </main>
     </div>
+    <!-- Indicador de configuración de Twilio (no visible) -->
+    <div id="twilio-config" data-enabled="{% if twilio_configured %}true{% else %}false{% endif %}" style="display:none"></div>
 
     <script>
     function getCookie(name) {
@@ -180,30 +182,35 @@
                 const createData = await createResponse.json();
                 console.log('Socio creado:', createData);
 
-                // PETICION 2: Enviar WhatsApp (encadenada, solo si exito en 1ra)
-                console.log('Petición 2: Enviando WhatsApp...');
-                const waFormData = new FormData();
-                waFormData.append('telefono', formData.get('telefono'));
-                waFormData.append('id_socio', createData.id_socio);
-                waFormData.append('password', createData.password);
-                waFormData.append('nombre', formData.get('nombre'));
-                waFormData.append('apellido', formData.get('apellido'));
+                // PETICION 2: Enviar WhatsApp (solo si Twilio está configurado)
+                const twilioConfigured = document.getElementById('twilio-config').dataset.enabled === 'true';
+                if (twilioConfigured) {
+                    console.log('Petición 2: Enviando WhatsApp...');
+                    const waFormData = new FormData();
+                    waFormData.append('telefono', formData.get('telefono'));
+                    waFormData.append('id_socio', createData.id_socio);
+                    waFormData.append('password', createData.password);
+                    waFormData.append('nombre', formData.get('nombre'));
+                    waFormData.append('apellido', formData.get('apellido'));
 
-                const waResponse = await fetch("{% url 'enviar_whatsapp_api' %}", {
-                    method: 'POST',
-                    body: waFormData,
-                    headers: headers
-                });
+                    const waResponse = await fetch("{% url 'enviar_whatsapp_api' %}", {
+                        method: 'POST',
+                        body: waFormData,
+                        headers: headers
+                    });
 
-                if (!waResponse.ok) {
-                    const waErrData = await waResponse.json().catch(() => ({}));
-                    throw new Error(waErrData.error || 'Error en WhatsApp');
-                }
+                    if (!waResponse.ok) {
+                        const waErrData = await waResponse.json().catch(() => ({}));
+                        throw new Error(waErrData.error || 'Error en WhatsApp');
+                    }
 
-                const waResult = await waResponse.json();
-                if (waResult.sent) {
+                    const waResult = await waResponse.json();
+                    if (!waResult.sent) {
+                        alert(`Socio creado, pero WhatsApp falló: ${waResult.error || 'Desconocido'}. Credenciales: Usuario ${createData.id_socio}, Pass: ${createData.password}`);
+                    }
                 } else {
-                    alert(`Socio creado, pero WhatsApp falló: ${waResult.error || 'Desconocido'}. Credenciales: Usuario ${createData.id_socio}, Pass: ${createData.password}`);
+                    // Twilio no configurado: evitar llamada y avisar de forma clara
+                    alert(`Socio creado. Envío por WhatsApp deshabilitado (sin configurar). Credenciales: Usuario ${createData.id_socio}, Pass: ${createData.password}`);
                 }
 
                 // Redirigir a lista de socios

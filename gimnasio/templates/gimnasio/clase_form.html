@@ -42,8 +42,9 @@
             {% endif %}
 
             <div class="card form-card">
-                <form method="POST">
+                <form id="clase-form">
                     {% csrf_token %}
+                    <input type="hidden" id="clase-pk" value="{% if clase %}{{ clase.pk }}{% endif %}">
                     <div class="form-grid">
                         
                         <div class="form-column">
@@ -101,6 +102,23 @@
         </main>
     </div>
     <script>
+        // Función de utilidad para obtener el Token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrfToken = getCookie('csrftoken');
+
         const selectEntrenador = document.getElementById('entrenador');
         const inputPrecio = document.getElementById('precio');
         
@@ -116,7 +134,7 @@
                 //PETICIÓN 1 (Async/Await): Obtener datos del Entrenador (usando el ViewSet DRF)
                 const urlEntrenador = `/api/entrenadores/${entrenadorPk}/`;
                 const response = await fetch(urlEntrenador);
-                
+                cargarPrecioPorEntrenador
                 if (!response.ok) {
                     throw new Error('Error al obtener datos del entrenador.');
                 }
@@ -139,6 +157,52 @@
         if (selectEntrenador.value) {
             cargarPrecioPorEntrenador();
         }
+
+        // Manejar submit del form vía AJAX (POST para crear, PUT para editar)
+        document.getElementById('clase-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const clasePk = document.getElementById('clase-pk').value;
+            const isEdit = !!clasePk;
+            const method = isEdit ? 'PUT' : 'POST';
+            const url = isEdit ? `/api/clases/${clasePk}/` : `/api/clases/`;
+
+            // Convertir FormData a JSON para el serializer
+            const data = {};
+            formData.forEach((value, key) => {
+                if (key === 'csrfmiddlewaretoken') return; 
+                data[key] = value;
+            });
+
+            if (data.entrenador) {
+                data.entrenador_id = data.entrenador;
+                delete data.entrenador;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(isEdit ? 'Clase actualizada correctamente.' : 'Clase creada correctamente.');
+                    window.location.href = "{% url 'lista_clases' %}";
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Error en el servidor.');
+                }
+            } catch (error) {
+                console.error('Error al guardar clase:', error);
+                alert(`Fallo al guardar: ${error.message}`);
+            }
+        });
     </script>
 </body>
 </html>

@@ -43,13 +43,14 @@
 
             <section class="clase-info-card">
                 <h2>Detalles de la Actividad</h2>
-                <div class="info-grid">
-                    <div><strong>ID Clase:</strong> {{ clase.id_clase }}</div>
-                    <div><strong>Entrenador:</strong> {{ clase.entrenador.nombre|default:"N/A" }}</div>
-                    <div><strong>Horario:</strong> {{ clase.fecha_hora|date:"H:i" }}</div>
-                    <div><strong>Capacidad:</strong> {{ clase.participantes.count }} / {{ clase.max_participantes }}</div>
-                    <div><strong>Precio:</strong> ${{ clase.precio }}</div>
-                    <div><strong>Duración:</strong> {{ clase.duracion_minutos }} min</div>
+                <!-- Marcadores para render dinámico -->
+                <div id="clase-meta" data-clase-id="{{ clase.pk }}" class="info-grid">
+                    <div><strong>ID Clase:</strong> <span id="d-id-clase">{{ clase.id_clase }}</span></div>
+                    <div><strong>Entrenador:</strong> <span id="d-entrenador">{{ clase.entrenador.nombre|default:"N/A" }}</span></div>
+                    <div><strong>Horario:</strong> <span id="d-horario">{{ clase.fecha_hora|date:"H:i" }}</span></div>
+                    <div><strong>Capacidad:</strong> <span id="d-capacidad">{{ clase.participantes.count }} / {{ clase.max_participantes }}</span></div>
+                    <div><strong>Precio:</strong> $<span id="d-precio">{{ clase.precio }}</span></div>
+                    <div><strong>Duración:</strong> <span id="d-duracion">{{ clase.duracion_minutos }}</span> min</div>
                 </div>
             </section>
             
@@ -74,23 +75,22 @@
             <a href="{% url 'lista_clases' %}" class="btn btn-secondary" style="margin-top: 20px;">← Volver al Listado de Clases</a>
 
             <section class="table-container" style="margin-top: 30px;">
-                <h2>Lista de Participantes ({{ participantes|length }})</h2>
-                {% if participantes %}
-                    <table>
-                        <thead>
+                <h2>Lista de Participantes (<span id="total-participantes">{{ participantes|length }}</span>)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Socio</th>
+                            <th>Nombre Completo</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantes-tbody">
+                        {% for socio in participantes %}
                             <tr>
-                                <th>ID Socio</th>
-                                <th>Nombre Completo</th>
-                                <th>Teléfono</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for socio in participantes %}
-                                <tr>
-                                    <td>{{ socio.id_socio|default:"N/A" }}</td>
-                                    <td>{{ socio.nombre }} {{ socio.apellido }}</td>
-                                    <td>{{ socio.telefono|default:"N/A" }}</td>
+                                <td>{{ socio.id_socio|default:"N/A" }}</td>
+                                <td>{{ socio.nombre }} {{ socio.apellido }}</td>
+                                <td>{{ socio.telefono|default:"N/A" }}</td>
                                 <td class="action-cell">
                                     <button type="button" class="btn btn-danger" 
                                             onclick="eliminarInscripcion({{ clase.pk }}, {{ socio.pk }}, '{{ socio.nombre }}')" 
@@ -98,20 +98,70 @@
                                         Eliminar Inscripción
                                     </button>
                                 </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <div class="no-data">
-                        Aún no hay participantes inscritos en esta clase.
-                    </div>
-                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div id="participantes-no-data" class="no-data" style="display:none;">Aún no hay participantes inscritos en esta clase.</div>
             </section>
             
         </main>
     </div>
     <script>
+        // Carga dinámica de detalles de clase y sus participantes (GET API)
+        function cargarDetalleClase() {
+            const meta = document.getElementById('clase-meta');
+            if (!meta) return;
+            const claseId = meta.dataset.claseId;
+            fetch(`/api/clases/${claseId}/`, { headers: { 'Accept': 'application/json' }})
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.json();
+                })
+                .then(data => {
+                    // Encabezado
+                    document.getElementById('d-id-clase').textContent = data.id_clase || data.id || '';
+                    const horario = data.fecha_hora ? new Date(data.fecha_hora).toLocaleString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '';
+                    document.getElementById('d-horario').textContent = horario;
+                    document.getElementById('d-entrenador').textContent = data.entrenador_nombre || (data.entrenador && data.entrenador.nombre) || 'N/A';
+                    document.getElementById('d-precio').textContent = data.precio ?? '';
+                    document.getElementById('d-duracion').textContent = data.duracion_minutos ?? '';
+
+                    // Participantes
+                    const participantes = Array.isArray(data.participantes) ? data.participantes : [];
+                    const tbody = document.getElementById('participantes-tbody');
+                    const noData = document.getElementById('participantes-no-data');
+                    tbody.innerHTML = '';
+                    if (participantes.length === 0) {
+                        noData.style.display = 'block';
+                    } else {
+                        noData.style.display = 'none';
+                        participantes.forEach(s => {
+                            const tr = document.createElement('tr');
+                            const socioNombre = `${s.nombre || ''}`.replace(/'/g, "\\'");
+                            tr.innerHTML = `
+                                <td>${s.id_socio || 'N/A'}</td>
+                                <td>${s.nombre || ''} ${s.apellido || ''}</td>
+                                <td>${s.telefono || 'N/A'}</td>
+                                <td class="action-cell">
+                                    <button type="button" class="btn btn-danger" 
+                                        onclick="eliminarInscripcion(${claseId}, ${s.id || s.pk}, '${socioNombre}')" 
+                                        style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
+                                        Eliminar Inscripción
+                                    </button>
+                                </td>`;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                    const max = data.max_participantes ?? '';
+                    document.getElementById('d-capacidad').textContent = `${participantes.length}${max ? ' / ' + max : ''}`;
+                    document.getElementById('total-participantes').textContent = participantes.length;
+                })
+                .catch(err => {
+                    console.error('Error al cargar detalle de clase:', err);
+                });
+        }
+
         // Petición AJAX usando Encadenamiento de Promesas (Punto 3: Eliminar)
         function eliminarInscripcion(clasePk, socioPk, nombreSocio) {
             if (!confirm(`¿Estás seguro de que quieres eliminar la inscripción de ${nombreSocio} a esta clase?`)) {
@@ -131,7 +181,8 @@
             })
             .then(response => {
                 if (response.ok || response.status === 302) {
-                    window.location.reload(); 
+                    // Recargar datos vía API sin recargar la página
+                    cargarDetalleClase();
                 } else {
                     throw new Error(`Código de respuesta: ${response.status}`);
                 }
@@ -141,6 +192,9 @@
                 alert('Fallo al eliminar la inscripción. Inténtalo de nuevo.');
             });
         }
+
+        // Carga inicial
+        document.addEventListener('DOMContentLoaded', cargarDetalleClase);
     </script>
 </body>
 </html>

@@ -35,16 +35,14 @@
 
             <div class="action-buttons">
                 <a href="{% url 'clase_form' %}" class="btn btn-primary">➕ Agregar Clase</a>
-                {% if query %}
-                    <p class="query-info">Buscando: "{{ query }}"</p>
-                {% endif %}
+                <div id="query-info" class="query-info" style="display: none;"></div>
             </div>
             
             <section class="search-container">
                 <div class="search-header">
                     <h2>Buscar Clase</h2>
-                    <form action="{% url 'lista_clases' %}" style="display: flex; gap: 10px;">
-                        <input type="text" name="q" placeholder="Ingresa nombre o ID de la clase..." class="search-input-group">
+                    <form id="search-form" style="display: flex; gap: 10px;" onsubmit="buscarClases(event);">
+                        <input type="text" id="search-input" name="q" placeholder="Ingresa nombre o ID de la clase..." class="search-input-group" value="{% if query %}{{ query }}{% endif %}">
                         <button type="submit" class="search-btn">🔍 Buscar</button>
                     </form>
                 </div>
@@ -58,64 +56,37 @@
                 </ul>
             {% endif %}
 
+            <div id="loading" style="display: none; text-align: center; padding: 20px;">Cargando clases...</div>
+
             <div class="table-container">
-                {% if clases %}
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Horario</th>
-                                <th>Duración (min)</th>
-                                <th>Entrenador</th>
-                                <th>Precio</th>
-                                <th>Participantes</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for clase in clases %}
-                                <tr>
-                                    <td>{{ clase.id_clase }}</td>
-                                    <td>{{ clase.nombre }}</td>
-                                    <td>{{ clase.fecha_hora|date:"d M H:i" }}</td>
-                                    <td>{{ clase.duracion_minutos }}</td>
-                                    <td>{{ clase.entrenador.nombre }}</td>
-                                    <td>${{ clase.precio }}</td>
-                                    <td>{{ clase.participantes_actuales }}/{{ clase.max_participantes }}</td>
-                                     <td class="action-cell">
-                                        {% if clase.pk %}
-                                            <a href="{% url 'inscripcion_clase_detalle' clase.pk %}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">
-                                                Inscribir
-                                            </a>
-                                            <a href="{% url 'clase_form' clase.pk %}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
-                                            <button type="button" class="btn btn-danger" 
-                                                    onclick="eliminarClaseAjax({{ clase.pk }}, '{{ clase.nombre }}')" 
-                                                    style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
-                                                Eliminar
-                                            </button>
-                                        {% else %}
-                                             <span class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px; opacity: 0.6; cursor: not-allowed;">No disponible</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <div class="no-data">
-                        {% if query %}
-                            No se encontraron clases con "{{ query }}".
-                        {% else %}
-                            No hay clases disponibles. ¡Agrega la primera!
-                        {% endif %}
-                    </div>
-                {% endif %}
+                <table id="clases-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Horario</th>
+                            <th>Duración (min)</th>
+                            <th>Entrenador</th>
+                            <th>Precio</th>
+                            <th>Participantes</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clases-tbody">
+                        <!-- Se poblará dinámicamente con JS -->
+                    </tbody>
+                </table>
+                <div id="paginacion" style="margin-top:10px; display:flex; gap:8px; align-items:center;"></div>
+                <div id="no-data" class="no-data" style="display: none;"></div>
             </div>
         </main>
     </div>
     
     <script>
+        // URLs base para Django (para evitar mezclar sintaxis en innerHTML)
+        const URL_INSCRIPCION_BASE = "{% url 'inscripcion_clase_detalle' 0 %}".replace('/0/', '/');
+        const URL_EDITAR_BASE = "{% url 'clase_form' 0 %}".replace('/0/', '/');
+
         // Función de utilidad para obtener el Token CSRF
         function getCookie(name) {
             let cookieValue = null;
@@ -134,7 +105,166 @@
         }
         const csrfToken = getCookie('csrftoken') || document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-        // Petición AJAX usando Encadenamiento de Promesas (Punto 3: Eliminar)
+        // Variable global para params de paginación y búsqueda
+        let currentParams = new URLSearchParams(window.location.search);
+        let currentPage = parseInt(currentParams.get('page')) || 1;
+        let searchQuery = currentParams.get('q') || '';
+
+        // Función principal: Cargar clases vía GET API
+        function cargarClases(page = 1, query = '') {
+            const url = `/api/clases/?page=${page}`;
+            let fullUrl = url;
+            if (query) {
+                fullUrl += `&q=${encodeURIComponent(query)}`;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('clases-tbody').innerHTML = ''; // Limpiar tabla
+            document.getElementById('paginacion').innerHTML = ''; // Limpiar paginación
+            document.getElementById('no-data').style.display = 'none';
+            document.getElementById('clases-table').style.display = 'none';
+
+            fetch(fullUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // No necesita CSRF para GET
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('No se encontraron clases.');
+                    } else {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.detail || 'Error en el servidor.');
+                        });
+                    }
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.results && data.results.length > 0) {
+                    // Poblar tabla
+                    const tbody = document.getElementById('clases-tbody');
+                    data.results.forEach(clase => {
+                        const row = crearFilaClase(clase);
+                        tbody.appendChild(row);
+                    });
+
+                    // Manejar paginación si existe
+                    if (data.next || data.previous) {
+                        crearPaginacion(data.next, data.previous, query);
+                    }
+
+                    // Mostrar tabla
+                    document.getElementById('clases-table').style.display = 'table';
+
+                    // Mostrar info de búsqueda si aplica
+                    const queryInfo = document.getElementById('query-info');
+                    if (query) {
+                        queryInfo.textContent = `Buscando: "${query}"`;
+                        queryInfo.style.display = 'block';
+                    } else {
+                        queryInfo.style.display = 'none';
+                    }
+                } else {
+                    mostrarNoData(query);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                console.error('Error al cargar clases:', error);
+                mostrarNoData(query, error.message);
+            });
+        }
+
+        // Función helper: Crear fila de tabla para una clase
+        function crearFilaClase(clase) {
+            const claseId = clase.id || clase.pk || 0;
+            const inscripcionUrl = `${URL_INSCRIPCION_BASE}${claseId}/`;
+            const editarUrl = `${URL_EDITAR_BASE}${claseId}/`;
+            const actualParticipantes = clase.participantes ? clase.participantes.length : (clase.participantes_actuales || 0);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${clase.id_clase || clase.id}</td>
+                <td>${clase.nombre}</td>
+                <td>${new Date(clase.fecha_hora).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${clase.duracion_minutos}</td>
+                <td>${clase.entrenador ? clase.entrenador.nombre : 'Sin asignar'}</td>
+                <td>$${clase.precio}</td>
+                <td>${actualParticipantes}/${clase.max_participantes}</td>
+                <td class="action-cell">
+                    <a href="${inscripcionUrl}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">
+                        Inscribir
+                    </a>
+                    <a href="${editarUrl}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Editar</a>
+                    <button type="button" class="btn btn-danger" 
+                            onclick="eliminarClaseAjax(${claseId}, '${clase.nombre.replace(/'/g, "\\'")}')" 
+                            style="padding: 5px 10px; font-size: 12px; border: none; cursor: pointer;">
+                        Eliminar
+                    </button>
+                </td>
+            `;
+            return row;
+        }
+
+        // Función helper: Crear botones de paginación
+        function crearPaginacion(nextUrl, previousUrl, query) {
+            const paginacion = document.getElementById('paginacion');
+            if (previousUrl) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Anterior';
+                prevBtn.className = 'btn btn-secondary';
+                prevBtn.onclick = () => {
+                    const urlParams = new URLSearchParams(previousUrl.split('?')[1]);
+                    const prevPage = urlParams.get('page');
+                    currentPage = parseInt(prevPage);
+                    cargarClases(prevPage, query);
+                };
+                paginacion.appendChild(prevBtn);
+            }
+
+            const pageInfo = document.createElement('span');
+            pageInfo.textContent = `Página ${currentPage}`;
+            paginacion.appendChild(pageInfo);
+
+            if (nextUrl) {
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Siguiente';
+                nextBtn.className = 'btn btn-primary';
+                nextBtn.onclick = () => {
+                    const urlParams = new URLSearchParams(nextUrl.split('?')[1]);
+                    const nextPage = urlParams.get('page');
+                    currentPage = parseInt(nextPage);
+                    cargarClases(nextPage, query);
+                };
+                paginacion.appendChild(nextBtn);
+            }
+        }
+
+        // Función helper: Mostrar "No data"
+        function mostrarNoData(query, error = null) {
+            const noDataDiv = document.getElementById('no-data');
+            noDataDiv.innerHTML = error ? `Error: ${error}` : (query ? `No se encontraron clases con "${query}".` : 'No hay clases disponibles. ¡Agrega la primera!');
+            noDataDiv.style.display = 'block';
+        }
+
+        // Manejar búsqueda (previene submit y llama a cargarClases)
+        function buscarClases(event) {
+            event.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            searchQuery = query;
+            currentPage = 1; // Reset a página 1
+            cargarClases(1, query);
+            // Actualiza URL para bookmarking
+            const params = new URLSearchParams({ page: 1, q: query });
+            window.history.replaceState({}, '', `?${params}`);
+        }
+
+        // Petición AJAX para eliminar (actualizada para recarga dinámica)
         function eliminarClaseAjax(clasePk, nombreClase) {
             if (!confirm(`¿Estás seguro de que quieres eliminar la clase ${nombreClase}? Esta acción no se puede deshacer.`)) {
                 return;
@@ -151,7 +281,8 @@
             .then(response => {
                 if (response.status === 204) {
                     alert(`Clase "${nombreClase}" eliminada correctamente.`);
-                    window.location.reload();
+                    // Recarga la lista actual en lugar de reload completo
+                    cargarClases(currentPage, searchQuery);
                 } else if (response.status === 404) {
                     throw new Error('La clase no fue encontrada.');
                 } else {
@@ -167,6 +298,11 @@
                 alert(`Fallo al eliminar: ${error.message}`);
             });
         }
+
+        // Cargar inicial al DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarClases(currentPage, searchQuery);
+        });
     </script>
 </body>
 </html>
