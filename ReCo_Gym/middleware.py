@@ -20,7 +20,7 @@ class SecurityHeadersMiddleware:
         # Controla qué información del Referrer se envía a otros sitios **
         response['Referrer-Policy'] = 'same-origin'
         
-        # Desactiva permisos peligrosos (geolocalización, micrófono)
+        # Desactiva permisos peligrosos (geolocalización micrófono)
         response['Permissions-Policy'] = 'geolocation=(), microphone=()'
         
         # Content Security Policy básico (ajusta según tus recursos)

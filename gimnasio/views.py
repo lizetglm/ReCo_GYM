@@ -84,6 +84,7 @@ def reset_password_socio(request, pk):
             messages.warning(request, "Este socio no tiene una cuenta de usuario de acceso vinculada.")
 
     return redirect('socios_list')
+
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_socio(request, pk):
@@ -126,6 +127,7 @@ def eliminar_socio(request, pk):
         return redirect('socios_list')
     
     return redirect('socios_list')
+# Lista de Clases con filtro por Entrenador
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def lista_clases(request):
