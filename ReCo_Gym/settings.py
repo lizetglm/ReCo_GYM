@@ -32,14 +32,15 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = 'same-origin'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True 
+DEBUG = False 
 
 # Si alguien intenta acceder con otro Host Django rechaza la request
 ALLOWED_HOSTS = ["localhost", 
                  "127.0.0.1",
                 "127.0.0.1:8000", 
                 "localhost:8000",
-                "dorotha-unpiercing-christel.ngrok-free.dev"]
+                "dorotha-unpiercing-christel.ngrok-free.dev",
+                "'.ngrok-free.app'"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
