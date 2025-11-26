@@ -17,7 +17,7 @@ from .serializers import (  # Asume que tienes serializers actualizados
 )
 
 class BaseGymViewSet(viewsets.ModelViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class EntrenadorViewSet(BaseGymViewSet):
