@@ -9,7 +9,7 @@ class SecurityHeadersMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
+        response = self.get_response(request) 
 
         # Evita que navegadores interpreten tipos MIME incorrectos
         response['X-Content-Type-Options'] = 'nosniff'

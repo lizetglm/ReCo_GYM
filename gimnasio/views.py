@@ -361,8 +361,7 @@ def socio_form(request, pk=None):
     return render(request, 'gimnasio/socio_form.html', context)
 
 @login_required(login_url='login')  # Solo usuarios autenticados
-@require_http_methods(["POST"])      # Solo acepta POST
-
+@require_http_methods(["POST"])      # Solo acepta POST 
 def enviar_whatsapp_api(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido. Usa POST.'}, status=405)

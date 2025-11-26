@@ -32,7 +32,7 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = 'same-origin'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True 
 
 # Si alguien intenta acceder con otro Host Django rechaza la request
 ALLOWED_HOSTS = ["localhost", 
