@@ -26,6 +26,9 @@ from datetime import datetime
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 
+# Importar funciones de seguridad XSS
+from .security import sanitize_text_input, sanitize_search_query, escape_javascript_string
+
 
 @login_required
 def dashboard(request):
@@ -36,7 +39,8 @@ def dashboard(request):
     total_entrenadores = Entrenador.objects.count()
 
     socios = Socio.objects.all()
-    query = request.GET.get('q', '')
+    # Sanitizar query de búsqueda
+    query = sanitize_search_query(request.GET.get('q', ''))
     if query:
         socios = socios.filter(
             Q(nombre__icontains=query) |
@@ -177,7 +181,8 @@ def registro_usuario(request):
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def socios_list(request):
     socios = Socio.objects.all()
-    query = request.GET.get('q', '')
+    # Sanitizar query de búsqueda
+    query = sanitize_search_query(request.GET.get('q', ''))
     if query:
         socios = socios.filter(
             Q(nombre__icontains=query) |
@@ -212,11 +217,11 @@ def socio_form(request, pk=None):
     if request.method == 'POST':
         try:
             with transaction.atomic():
-                # Datos del POST
-                nombre = request.POST.get('nombre', '').strip()
-                apellido = request.POST.get('apellido', '').strip()
-                telefono = request.POST.get('telefono', '').strip()
-                domicilio = request.POST.get('domicilio', '').strip()
+                # Datos del POST - Sanitizar entrada de usuario
+                nombre = sanitize_text_input(request.POST.get('nombre', '').strip())
+                apellido = sanitize_text_input(request.POST.get('apellido', '').strip())
+                telefono = sanitize_text_input(request.POST.get('telefono', '').strip())
+                domicilio = sanitize_text_input(request.POST.get('domicilio', '').strip())
                 tipo_socio = request.POST.get('tipo_socio')
                 tipo_suscripcion = request.POST.get('tipo_suscripcion') if tipo_socio == 'interno' else None
                 fecha_inicio_str = request.POST.get('fecha_inicio') if tipo_socio == 'interno' else None
@@ -426,7 +431,8 @@ def perfil_socio(request):
 @login_required
 def perfil_lista_clases(request):
     clases = Clase.objects.select_related('entrenador').all()
-    query = request.GET.get('q', '')
+    # Sanitizar query de búsqueda
+    query = sanitize_search_query(request.GET.get('q', ''))
     if query:
         clases = clases.filter(
             Q(nombre__icontains=query) |
@@ -438,13 +444,15 @@ def perfil_lista_clases(request):
 @login_required
 def perfil_instructores_list(request):
     entrenadores = Entrenador.objects.all()
-    query = request.GET.get('q', '')
+    # Sanitizar query de búsqueda
+    query = sanitize_search_query(request.GET.get('q', ''))
     if query:
         entrenadores = entrenadores.filter(
             Q(nombre__icontains=query) |
             Q(especialidad__icontains=query) |
             Q(telefono__icontains=query)
         )
+    return render(request, 'gimnasio/perfil_instructores_list.html', {'entrenadores': entrenadores, 'query': query})
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def inscribir_a_clase(request, socio_id, clase_id):
@@ -485,10 +493,10 @@ def clase_form(request, pk=None):
     entrenadores = Entrenador.objects.all()
 
     if request.method == 'POST':
-        # Campos de Clase
+        # Campos de Clase - Sanitizar entrada
         id_clase = request.POST.get('id_clase', get_random_string(length=10))
-        nombre = request.POST.get('nombre', '')
-        descripcion = request.POST.get('descripcion', '')
+        nombre = sanitize_text_input(request.POST.get('nombre', ''))
+        descripcion = sanitize_text_input(request.POST.get('descripcion', ''))
         fecha_hora = request.POST.get('fecha_hora', '')
         duracion_minutos = request.POST.get('duracion_minutos', 60)
         entrenador_pk = request.POST.get('entrenador', '')
@@ -660,7 +668,8 @@ def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def instructores_list(request): 
-    query = request.GET.get('q')
+    # Sanitizar query de búsqueda
+    query = sanitize_search_query(request.GET.get('q', ''))
     entrenadores = Entrenador.objects.all().order_by('nombre')
     
     if query:
@@ -687,9 +696,10 @@ def instructor_form(request, pk=None):
 
     if request.method == 'POST':
         try:
-            nombre = request.POST.get('nombre')
-            especialidad = request.POST.get('especialidad')
-            telefono = request.POST.get('telefono')
+            # Sanitizar entrada de usuario
+            nombre = sanitize_text_input(request.POST.get('nombre', ''))
+            especialidad = sanitize_text_input(request.POST.get('especialidad', ''))
+            telefono = sanitize_text_input(request.POST.get('telefono', ''))
             fecha_contratacion = request.POST.get('fecha_contratacion')
             salario = request.POST.get('salario')
 
