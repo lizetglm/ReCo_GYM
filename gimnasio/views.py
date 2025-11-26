@@ -362,7 +362,7 @@ def socio_form(request, pk=None):
 
 @login_required(login_url='login')  # Solo usuarios autenticados
 @require_http_methods(["POST"])      # Solo acepta POST
-@login_required
+
 def enviar_whatsapp_api(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido. Usa POST.'}, status=405)
