@@ -21,12 +21,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-w7dyni67i+1-0j@_bbpw53^x2o(x_%hw6k^^ua_^2oi13--y8p'
+SESSION_COOKIE_SECURE = False  # True en HTTPS
+CSRF_COOKIE_SECURE = False     # True en HTTPS
+SECURE_SSL_REDIRECT = False    # True en HTTPS
+SECURE_HSTS_SECONDS = 0        # 3600 en HTTPS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'same-origin'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Si alguien intenta acceder con otro Host Django rechaza la request
+ALLOWED_HOSTS = ["localhost", 
+                 "127.0.0.1",
+                "127.0.0.1:8000", 
+                "localhost:8000",
+                "dorotha-unpiercing-christel.ngrok-free.dev"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://127.0.0.1",
+    "https://dorotha-unpiercing-christel.ngrok-free.dev",
+]
 
 # Application definition
 
@@ -47,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'ReCo_Gym.middleware.SecurityHeadersMiddleware',  # ← AÑADE ESTA LÍNEA
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -147,4 +169,6 @@ LOGIN_URL = 'login_usuario'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://dorotha-unpiercing-christel.ngrok-free.dev",
+    
 ]

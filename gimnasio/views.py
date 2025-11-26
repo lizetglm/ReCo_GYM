@@ -24,6 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from datetime import datetime
 from django.conf import settings
+from django.views.decorators.http import require_http_methods
 
 
 @login_required
@@ -357,7 +358,8 @@ def socio_form(request, pk=None):
     }
     return render(request, 'gimnasio/socio_form.html', context)
 
-@csrf_exempt
+@login_required(login_url='login')  # Solo usuarios autenticados
+@require_http_methods(["POST"])      # Solo acepta POST
 @login_required
 def enviar_whatsapp_api(request):
     if request.method != 'POST':
