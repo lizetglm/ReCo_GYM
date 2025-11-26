@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+
+import os
+import dj_database_url 
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w7dyni67i+1-0j@_bbpw53^x2o(x_%hw6k^^ua_^2oi13--y8p'
+SECRET_KEY = 'djkncnjrkehhtw4intvo3ipvri34iur348urihferuh3948cpc9bcniyn87t@@DJHJHufiu#!@Wjjkll'
 SESSION_COOKIE_SECURE = False  # True en HTTPS
 CSRF_COOKIE_SECURE = False     # True en HTTPS
 SECURE_SSL_REDIRECT = False    # True en HTTPS
@@ -37,10 +40,7 @@ DEBUG = False
 # Si alguien intenta acceder con otro Host Django rechaza la request
 ALLOWED_HOSTS = ["localhost", 
                  "127.0.0.1",
-                "127.0.0.1:8000", 
-                "localhost:8000",
-                "dorotha-unpiercing-christel.ngrok-free.dev",
-                "'.ngrok-free.app'"]
+                 ".onrender.com"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -66,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -109,6 +110,11 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+
+# Configuración para Render 
+db_from_env = dj_database_url.config(conn_max_age=500)
+if db_from_env:
+    DATABASES['default'] = db_from_env
 
 
 # Password validation
@@ -173,3 +179,19 @@ CORS_ALLOWED_ORIGINS = [
     "https://dorotha-unpiercing-christel.ngrok-free.dev",
     
 ]
+
+# (W012 y W016) Cookies seguras
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# (W008) Redirección a HTTPS
+SECURE_SSL_REDIRECT = True
+
+# (W004) HSTS - Seguridad estricta de transporte
+SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+#Para guardar los estilod donde debe 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
