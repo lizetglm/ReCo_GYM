@@ -1,0 +1,1 @@
+web: gunicorn ReCo_Gym.wsgi:application
