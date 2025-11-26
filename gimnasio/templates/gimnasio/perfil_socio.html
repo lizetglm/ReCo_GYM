@@ -53,10 +53,11 @@
 </head>
 <body>
     <div class="container">
-        <ul class="nav-menu">
-                <li><a href="{% url 'perfil_socio' %}">👥 Socio</a></li>
+        <nav class="sidebar">
+            <div class="sidebar-logo">🏋️ Control Gym</div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'perfil_socio' %}" class="active">👥 Socio</a></li>
                 <li><a href="{% url 'perfil_lista_clases' %}">🏋️ Actividades</a></li>
-                <li><a href="{% url 'perfil_instructores_list' %}">👨‍🏫 Instructores</a></li>
                 <li><a href="#">📱 WhatsApp</a></li>
                 <li><a href="#">📈 Estadísticas</a></li>
             </ul>
@@ -65,7 +66,10 @@
         <main class="main-content">
             <header class="header-bar">
                 <h1 class="header-title">Perfil de {{ socio.nombre }} {{ socio.apellido }}</h1>
-                
+                <div class="user-actions">
+                    <span>Hola, {{ socio.nombre }} 👋</span>
+                    <a href="{% url 'logout_usuario' %}" style="color: var(--sky-500); text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+                </div>
             </header>
 
             <section class="member-profile">
@@ -120,9 +124,6 @@
                                         {% if suscripcion.activa %}ACTIVA{% else %}EXPIRADA{% endif %}
                                     </span>
                                 </p>
-                            </div>
-                            <div class="sub-item">
-                                <a href="{% url 'socio_form' socio.pk %}" class="btn btn-primary" style="font-size: 14px; padding: 8px 15px;">Renovar / Pagar</a>
                             </div>
                         </div>
                     {% else %}

@@ -12,7 +12,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import mm
 from django.views.generic import TemplateView
 from django.db.models import Sum
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -60,6 +61,7 @@ def dashboard(request):
     return render(request, 'gimnasio/dashboard.html', context)
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def reset_password_socio(request, pk):
     # Restringe el acceso solo a administradores
     if not request.user.is_staff:
@@ -81,8 +83,8 @@ def reset_password_socio(request, pk):
             messages.warning(request, "Este socio no tiene una cuenta de usuario de acceso vinculada.")
 
     return redirect('socios_list')
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_socio(request, pk):
     socio = get_object_or_404(Socio, pk=pk)
     
@@ -123,8 +125,8 @@ def eliminar_socio(request, pk):
         return redirect('socios_list')
     
     return redirect('socios_list')
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def lista_clases(request):
     clases = Clase.objects.all()
     entrenador_id = request.GET.get('entrenador')
@@ -168,8 +170,8 @@ def logout_usuario(request):
 @login_required
 def registro_usuario(request):
     return render(request, 'gimnasio/registro.html')
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def socios_list(request):
     socios = Socio.objects.all()
     query = request.GET.get('q', '')
@@ -194,9 +196,8 @@ def socios_list(request):
     }
     return render(request, 'gimnasio/socios_list.html', context)
 
-User = get_user_model() 
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def socio_form(request, pk=None):
     socio = None
     suscripcion = None
@@ -441,9 +442,8 @@ def perfil_instructores_list(request):
             Q(especialidad__icontains=query) |
             Q(telefono__icontains=query)
         )
-    return render(request, 'gimnasio/perfil_instructores_list.html', {'entrenadores': entrenadores, 'query': query})
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def inscribir_a_clase(request, socio_id, clase_id):
     socio = get_object_or_404(Socio, pk=socio_id)
     clase = get_object_or_404(Clase, pk=clase_id)
@@ -472,9 +472,8 @@ def inscribir_a_clase(request, socio_id, clase_id):
         return redirect('lista_clases')
     
     context = {'socio': socio, 'clase': clase}
-    return render(request, 'gimnasio/inscripcion_form.html', context)
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def clase_form(request, pk=None):
     clase = None
     if pk:
@@ -525,20 +524,17 @@ def clase_form(request, pk=None):
         return redirect('lista_clases')
 
     # Para GET
-    context = {'clase': clase, 'entrenadores': entrenadores}
-    return render(request, 'gimnasio/clase_form.html', context)
-
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_clase(request, pk):
     clase = get_object_or_404(Clase, pk=pk)
     if request.method == 'POST':
         nombre_clase = clase.nombre
         clase.delete()
-        messages.success(request, f'Clase "{nombre_clase}" eliminada correctamente.')
-    return redirect('lista_clases')
-
+# Función para Inscribir un Socio a una Clase
 # Función para Inscribir un Socio a una Clase
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def inscribir_clase(request, clase_pk):
     if request.method == 'POST':
         clase = get_object_or_404(Clase, pk=clase_pk)
@@ -570,10 +566,9 @@ def inscribir_clase(request, clase_pk):
         except Exception as e:
             messages.error(request, f'Error al inscribir: {e}')
             
-    return redirect('lista_clases') 
-
-
 @login_required
+@login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def inscripcion_clase_detalle(request, pk):
     clase = get_object_or_404(Clase, pk=pk)
     
@@ -627,11 +622,11 @@ def inscripcion_clase_detalle(request, pk):
 
     context = {
         'clase': clase,
-        'participantes': clase.participantes.all().order_by('nombre'),
     }
     return render(request, 'gimnasio/inscripcion_clase_detalle.html', context)
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
     clase = get_object_or_404(Clase, pk=clase_pk)
     socio = get_object_or_404(Socio, pk=socio_pk)
@@ -658,12 +653,9 @@ def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
         else:
             messages.error(request, f'El socio {socio.nombre} no estaba inscrito en {clase.nombre}.')
             
-        return redirect('inscripcion_clase_detalle', pk=clase_pk)
-        
-    return redirect('inscripcion_clase_detalle', pk=clase_pk)
-
 # Listado de Instructores
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def instructores_list(request): 
     query = request.GET.get('q')
     entrenadores = Entrenador.objects.all().order_by('nombre')
@@ -676,13 +668,14 @@ def instructores_list(request):
         ).distinct()
         
     context = {
-        'entrenadores': entrenadores, 
-        'query': query,
+        'entrenadores': entrenadores,
+        'query': query
     }
     return render(request, 'gimnasio/instructores_list.html', context) 
 
 # Formulario de Instructor
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def instructor_form(request, pk=None): 
     if pk:
         entrenador = get_object_or_404(Entrenador, pk=pk)
@@ -730,13 +723,12 @@ def instructor_form(request, pk=None):
             messages.error(request, f'Error al guardar el instructor: {e}')
             return redirect('instructor_form', pk=pk) 
 
-    context = {
-        'entrenador': entrenador,
-    }
+    context = {'entrenador': entrenador}
     return render(request, 'gimnasio/instructor_form.html', context) 
 
 # Eliminar Instructor
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_instructor(request, pk): 
     entrenador = get_object_or_404(Entrenador, pk=pk)
     if request.method == 'POST':
@@ -748,18 +740,22 @@ def eliminar_instructor(request, pk):
         except Exception as e:
             messages.error(request, f'Error al eliminar el instructor: {e}')
             return redirect('instructores_list')
-    return redirect('instructores_list') 
 
+    return redirect('instructores_list')
 
-class CajaView(TemplateView):
+class CajaView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "gimnasio/caja.html"
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        return redirect('perfil_socio')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         movimientos = CajaMovimiento.objects.select_related(
             'venta', 
-            'socio', 
-            'inscripcion_clase__clase',
             'suscripcion',            
         ).order_by('-fecha')[:200]
         total_hoy = CajaMovimiento.objects.filter(fecha__date=date.today()).aggregate(total=Sum('monto'))['total'] or 0
@@ -770,6 +766,7 @@ class CajaView(TemplateView):
         return ctx
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def pago_productos(request):
     """Pantalla para registrar ventas de productos en la tienda del gym."""
     productos = Producto.objects.all().order_by("nombre")
@@ -779,6 +776,7 @@ def pago_productos(request):
     return render(request, "gimnasio/pago_productos.html", {"productos": productos})
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def ticket_venta_pdf(request, venta_id: int):
     """Genera un PDF tipo ticket para una venta de productos."""
     venta = get_object_or_404(Caja.objects.prefetch_related("items__producto"), pk=venta_id)
