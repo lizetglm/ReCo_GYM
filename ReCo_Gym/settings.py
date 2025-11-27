@@ -47,7 +47,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost",
     "http://127.0.0.1",
-    "https://reco-gym-8tdz.onrender.com/"
+    "https://reco-gym-8tdz.onrender.com"
 ]
 
 # Application definition
@@ -176,8 +176,7 @@ LOGIN_URL = 'login_usuario'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://reco-gym-8tdz.onrender.com/",
-   
+    "https://reco-gym-8tdz.onrender.com",   
 ]
 
 # (W012 y W016) Cookies seguras
