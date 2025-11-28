@@ -547,6 +547,7 @@ def eliminar_clase(request, pk):
     if request.method == 'POST':
         nombre_clase = clase.nombre
         clase.delete()
+    return redirect('lista_clases')
 
 # Función para Inscribir un Socio a una Clase
 @login_required

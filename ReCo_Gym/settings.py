@@ -24,10 +24,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'djkncnjrkehhtw4intvo3ipvri34iur348urihferuh3948cpc9bcniyn87t@@DJHJHufiu#!@Wjjkll'
-SESSION_COOKIE_SECURE = False  # True en HTTPS
-CSRF_COOKIE_SECURE = False     # True en HTTPS
-SECURE_SSL_REDIRECT = False    # True en HTTPS
-SECURE_HSTS_SECONDS = 0        # 3600 en HTTPS
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'

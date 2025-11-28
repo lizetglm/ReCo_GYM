@@ -36,7 +36,7 @@ class SecurityHeadersMiddleware:
         # CSP es la mejor defensa contra XSS. Restringe qué recursos pueden cargarse.
         csp = (
             f"default-src 'self'; "
-            f"script-src 'self' 'nonce-{nonce}'; "  # Solo scripts locales + inline con nonce
+            f"script-src 'self' 'unsafe-inline' 'nonce-{nonce}'; "
             f"style-src 'self' 'unsafe-inline'; "    # Estilos: self + inline (necesario para compatibilidad)
             f"img-src 'self' data: https:; "          # Imágenes: local, data URIs, y https
             f"font-src 'self' data:; "                # Fuentes: locales y data URIs
