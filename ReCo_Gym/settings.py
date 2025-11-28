@@ -23,20 +23,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'djkncnjrkehhtw4intvo3ipvri34iur348urihferuh3948cpc9bcniyn87t@@DJHJHufiu#!@Wjjkll'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME, 'localhost', '127.0.0.1']
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_REFERRER_POLICY = 'same-origin'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False 
 
 # Si alguien intenta acceder con otro Host Django rechaza la request
-ALLOWED_HOSTS = ["localhost", 
-                 "127.0.0.1",
-                 ".onrender.com"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -96,6 +97,7 @@ WSGI_APPLICATION = 'ReCo_Gym.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Esta es la que usará tu computadora siempre que NO detecte la variable de Render.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -107,8 +109,11 @@ DATABASES = {
     }
 }
 
-# Configuración para Render 
+# Configuración desde Render (PostgreSQL)
 db_from_env = dj_database_url.config(conn_max_age=500)
+
+# Si db_from_env tiene datos (porque estamos en Render), SOBREESCRIBE la configuración local.
+# Si db_from_env está vacío (porque estamos en tu PC), se queda con MySQL.
 if db_from_env:
     DATABASES['default'] = db_from_env
 
@@ -191,3 +196,11 @@ SECURE_HSTS_PRELOAD = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 #STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+
