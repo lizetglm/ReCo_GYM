@@ -36,7 +36,7 @@ class SecurityHeadersMiddleware:
         # CSP es la mejor defensa contra XSS. Restringe qué recursos pueden cargarse.
         csp = (
             f"default-src 'self'; "
-            f"script-src 'self' 'unsafe-inline' 'nonce-{nonce}'; "
+            f"script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             f"style-src 'self' 'unsafe-inline'; "    # Estilos: self + inline (necesario para compatibilidad)
             f"img-src 'self' data: https:; "          # Imágenes: local, data URIs, y https
             f"font-src 'self' data:; "                # Fuentes: locales y data URIs
@@ -49,7 +49,7 @@ class SecurityHeadersMiddleware:
         response['Content-Security-Policy'] = csp
         
         # CSP Report-Only: para testing (reporta violaciones sin bloquear)
-        response['Content-Security-Policy-Report-Only'] = csp + f" report-uri /api/csp-report/"
+        #response['Content-Security-Policy-Report-Only'] = csp + f" report-uri /api/csp-report/"
         
         # HSTS: Fuerza HTTPS en futuras requests (solo en producción)
         if getattr(settings, 'SECURE_HSTS_SECONDS', 0):

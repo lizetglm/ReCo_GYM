@@ -134,7 +134,6 @@
                 //PETICIÓN 1 (Async/Await): Obtener datos del Entrenador (usando el ViewSet DRF)
                 const urlEntrenador = `/api/entrenadores/${entrenadorPk}/`;
                 const response = await fetch(urlEntrenador);
-                cargarPrecioPorEntrenador
                 if (!response.ok) {
                     throw new Error('Error al obtener datos del entrenador.');
                 }
