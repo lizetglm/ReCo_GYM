@@ -483,6 +483,7 @@ def inscribir_a_clase(request, socio_id, clase_id):
         return redirect('lista_clases')
     
     context = {'socio': socio, 'clase': clase}
+
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def clase_form(request, pk=None):
@@ -535,6 +536,10 @@ def clase_form(request, pk=None):
         return redirect('lista_clases')
 
     # Para GET
+    context = {'clase': clase, 'entrenadores': entrenadores}
+    return render(request, 'gimnasio/clase_form.html', context)
+
+
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
 def eliminar_clase(request, pk):
@@ -542,7 +547,7 @@ def eliminar_clase(request, pk):
     if request.method == 'POST':
         nombre_clase = clase.nombre
         clase.delete()
-# Función para Inscribir un Socio a una Clase
+
 # Función para Inscribir un Socio a una Clase
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
