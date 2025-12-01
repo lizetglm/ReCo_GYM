@@ -12,11 +12,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import mm
 from django.views.generic import TemplateView
 from django.db.models import Sum
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from .whatsapp import send_whatsapp_message
@@ -66,10 +66,10 @@ def dashboard(request):
     return render(request, 'gimnasio/dashboard.html', context)
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.change_socio', login_url='perfil_socio', raise_exception=False)
 def reset_password_socio(request, pk):
-    # Restringe el acceso solo a administradores
-    if not request.user.is_staff:
+    # Restringe el acceso solo a usuarios con permiso
+    if not request.user.has_perm('gimnasio.change_socio'):
         messages.error(request, "Acceso denegado.")
         return redirect('socios_list')
 
@@ -90,7 +90,7 @@ def reset_password_socio(request, pk):
     return redirect('socios_list')
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.delete_socio', login_url='perfil_socio', raise_exception=False)
 def eliminar_socio(request, pk):
     socio = get_object_or_404(Socio, pk=pk)
     
@@ -133,7 +133,7 @@ def eliminar_socio(request, pk):
     return redirect('socios_list')
 # Lista de Clases con filtro por Entrenador
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.view_clase', login_url='perfil_socio', raise_exception=False)
 def lista_clases(request):
     clases = Clase.objects.all()
     entrenador_id = request.GET.get('entrenador')
@@ -178,7 +178,7 @@ def logout_usuario(request):
 def registro_usuario(request):
     return render(request, 'gimnasio/registro.html')
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.view_socio', login_url='perfil_socio', raise_exception=False)
 def socios_list(request):
     socios = Socio.objects.all()
     # Sanitizar query de búsqueda
@@ -205,7 +205,7 @@ def socios_list(request):
     return render(request, 'gimnasio/socios_list.html', context)
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.change_socio', login_url='perfil_socio', raise_exception=False)
 def socio_form(request, pk=None):
     socio = None
     suscripcion = None
@@ -295,6 +295,14 @@ def socio_form(request, pk=None):
                         user.first_name = nombre
                         user.last_name = apellido
                         user.save()
+                        
+                        # Asignar al grupo Socios
+                        try:
+                            grupo_socios = Group.objects.get(name='Socios')
+                            user.groups.add(grupo_socios)
+                        except Group.DoesNotExist:
+                            pass # El grupo no existe aún, no pasa nada crítico
+
                         socio.user = user
                         socio.save()
 
@@ -454,7 +462,7 @@ def perfil_instructores_list(request):
         )
     return render(request, 'gimnasio/perfil_instructores_list.html', {'entrenadores': entrenadores, 'query': query})
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.add_inscripcionclase', login_url='perfil_socio', raise_exception=False)
 def inscribir_a_clase(request, socio_id, clase_id):
     socio = get_object_or_404(Socio, pk=socio_id)
     clase = get_object_or_404(Clase, pk=clase_id)
@@ -485,7 +493,7 @@ def inscribir_a_clase(request, socio_id, clase_id):
     context = {'socio': socio, 'clase': clase}
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.change_clase', login_url='perfil_socio', raise_exception=False)
 def clase_form(request, pk=None):
     clase = None
     if pk:
@@ -541,7 +549,7 @@ def clase_form(request, pk=None):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.delete_clase', login_url='perfil_socio', raise_exception=False)
 def eliminar_clase(request, pk):
     clase = get_object_or_404(Clase, pk=pk)
     if request.method == 'POST':
@@ -551,7 +559,7 @@ def eliminar_clase(request, pk):
 
 # Función para Inscribir un Socio a una Clase
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.add_inscripcionclase', login_url='perfil_socio', raise_exception=False)
 def inscribir_clase(request, clase_pk):
     if request.method == 'POST':
         clase = get_object_or_404(Clase, pk=clase_pk)
@@ -584,8 +592,7 @@ def inscribir_clase(request, clase_pk):
             messages.error(request, f'Error al inscribir: {e}')
             
 @login_required
-@login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.add_inscripcionclase', login_url='perfil_socio', raise_exception=False)
 def inscripcion_clase_detalle(request, pk):
     clase = get_object_or_404(Clase, pk=pk)
     
@@ -643,7 +650,7 @@ def inscripcion_clase_detalle(request, pk):
     return render(request, 'gimnasio/inscripcion_clase_detalle.html', context)
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.delete_inscripcionclase', login_url='perfil_socio', raise_exception=False)
 def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
     clase = get_object_or_404(Clase, pk=clase_pk)
     socio = get_object_or_404(Socio, pk=socio_pk)
@@ -672,7 +679,7 @@ def eliminar_inscripcion_clase(request, clase_pk, socio_pk):
             
 # Listado de Instructores
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.view_entrenador', login_url='perfil_socio', raise_exception=False)
 def instructores_list(request): 
     # Sanitizar query de búsqueda
     query = sanitize_search_query(request.GET.get('q', ''))
@@ -693,7 +700,7 @@ def instructores_list(request):
 
 # Formulario de Instructor
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.change_entrenador', login_url='perfil_socio', raise_exception=False)
 def instructor_form(request, pk=None): 
     if pk:
         entrenador = get_object_or_404(Entrenador, pk=pk)
@@ -747,7 +754,7 @@ def instructor_form(request, pk=None):
 
 # Eliminar Instructor
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.delete_entrenador', login_url='perfil_socio', raise_exception=False)
 def eliminar_instructor(request, pk): 
     entrenador = get_object_or_404(Entrenador, pk=pk)
     if request.method == 'POST':
@@ -762,11 +769,9 @@ def eliminar_instructor(request, pk):
 
     return redirect('instructores_list')
 
-class CajaView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class CajaView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = "gimnasio/caja.html"
-
-    def test_func(self):
-        return self.request.user.is_staff
+    permission_required = 'gimnasio.view_cajamovimiento'
 
     def handle_no_permission(self):
         return redirect('perfil_socio')
@@ -785,7 +790,7 @@ class CajaView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return ctx
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.add_cajamovimiento', login_url='perfil_socio', raise_exception=False)
 def pago_productos(request):
     """Pantalla para registrar ventas de productos en la tienda del gym."""
     productos = Producto.objects.all().order_by("nombre")
@@ -795,7 +800,7 @@ def pago_productos(request):
     return render(request, "gimnasio/pago_productos.html", {"productos": productos})
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='perfil_socio')
+@permission_required('gimnasio.view_cajamovimiento', login_url='perfil_socio', raise_exception=False)
 def ticket_venta_pdf(request, venta_id: int):
     """Genera un PDF tipo ticket para una venta de productos."""
     venta = get_object_or_404(Caja.objects.prefetch_related("items__producto"), pk=venta_id)
