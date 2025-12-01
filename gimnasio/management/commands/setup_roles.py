@@ -45,10 +45,8 @@ class Command(BaseCommand):
         count_socios = 0
 
         for user in users:
-            if user.is_superuser:
-                # Los superusuarios no necesitan grupo, pero pueden estar si se desea.
-                pass
-            elif user.is_staff:
+            if user.is_superuser or user.is_staff:
+                # Agregamos también a los superusuarios para que sea visible en el admin
                 grupo_admins.user_set.add(user)
                 count_admins += 1
             else:
